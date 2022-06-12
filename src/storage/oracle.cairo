@@ -26,10 +26,8 @@ namespace OracleStorage:
         asset_price: AssetPriceStruct
     ):
 
-        let (asset_price) = asset_price_storage.read(asset_address)
-
-        return (
-            asset_price = asset_price
+        return asset_price_storage.read(
+            asset_address = asset_address
         )
     end
 
@@ -38,7 +36,10 @@ namespace OracleStorage:
         asset_price: AssetPriceStruct,
     ) -> ():
 
-        asset_price_storage.write(asset_address, asset_price)
+        asset_price_storage.write(
+            asset_address = asset_address,
+            value = asset_price
+        )
 
         return ()
     end
@@ -54,7 +55,9 @@ namespace OracleStorage:
         owner_address: felt
     ) -> ():
 
-        owner_storage.write(owner_address)
+        owner_storage.write(
+            value = owner_address
+        )
 
         return ()
     end

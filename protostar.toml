@@ -11,3 +11,6 @@ cairo_path = ["./lib/cairo_contracts/src"]
 oracle = [
     "./src/interaction/oracle.cairo",
 ]
+wtb_dex = [
+    "./src/interaction/wtb_dex.cairo",
+]
