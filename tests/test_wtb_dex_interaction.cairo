@@ -249,3 +249,187 @@ func test_update_strategy_increase_balance_add_zero{syscall_ptr : felt*, pederse
     return ()
 end
 
+@external
+func test_update_strategy_decrease_balance_success{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    alloc_locals
+
+    local caller_address
+    local wtb_dex_address
+    local token_a_address
+    local token_b_address
+    %{
+        ids.caller_address = context.caller_address
+        ids.wtb_dex_address = context.wtb_dex_address
+        ids.token_a_address = context.token_a_address
+        ids.token_b_address = context.token_b_address
+    %}
+    
+    test_update_strategy_increase_balance_success()
+
+    local quantity: Uint256 = Uint256(
+        low = 10,
+        high = 0
+    )
+
+    %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.wtb_dex_address) %}
+    WtbDexInterface.update_strategy_decrease_balance(
+        contract_address = wtb_dex_address,
+        asset_address = token_a_address,
+        asset_quantity = quantity
+    )
+
+    let (quantity_updated: Uint256) = WtbDexInterface.read_strategy_asset_balance(
+        contract_address = wtb_dex_address,
+        strategy_address = caller_address,
+        asset_address = token_a_address
+    )
+    local quantity: Uint256 = Uint256(
+        low = 4,
+        high = 0
+    )
+    assert quantity = quantity_updated
+    
+    %{ stop_prank_callable() %}
+    
+    ##################
+
+    local quantity_2: Uint256 = Uint256(
+        low = 4,
+        high = 0
+    )
+
+    %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.wtb_dex_address) %}
+    WtbDexInterface.update_strategy_decrease_balance(
+        contract_address = wtb_dex_address,
+        asset_address = token_a_address,
+        asset_quantity = quantity_2
+    )
+
+    let (quantity_updated: Uint256) = WtbDexInterface.read_strategy_asset_balance(
+        contract_address = wtb_dex_address,
+        strategy_address = caller_address,
+        asset_address = token_a_address
+    )
+    local quantity_2: Uint256 = Uint256(
+        low = 0,
+        high = 0
+    )
+    assert quantity_2 = quantity_updated
+    
+    %{ stop_prank_callable() %}
+    return ()
+end
+
+@external
+func test_update_strategy_decrease_balance_too_much{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    alloc_locals
+
+    local caller_address
+    local wtb_dex_address
+    local token_a_address
+    local token_b_address
+    %{
+        ids.caller_address = context.caller_address
+        ids.wtb_dex_address = context.wtb_dex_address
+        ids.token_a_address = context.token_a_address
+        ids.token_b_address = context.token_b_address
+    %}
+    
+    test_update_strategy_increase_balance_different_strategy()
+
+    local quantity: Uint256 = Uint256(
+        low = 11,
+        high = 0
+    )
+
+    %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.wtb_dex_address) %}
+    %{ expect_revert() %}
+    WtbDexInterface.update_strategy_decrease_balance(
+        contract_address = wtb_dex_address,
+        asset_address = token_a_address,
+        asset_quantity = quantity
+    )
+    
+    %{ stop_prank_callable() %}
+    
+    return ()
+end
+
+@external
+func test_update_strategy_decrease_balance_empty{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    alloc_locals
+
+    local caller_address
+    local wtb_dex_address
+    local token_a_address
+    local token_b_address
+    %{
+        ids.caller_address = context.caller_address
+        ids.wtb_dex_address = context.wtb_dex_address
+        ids.token_a_address = context.token_a_address
+        ids.token_b_address = context.token_b_address
+    %}
+    
+    local quantity: Uint256 = Uint256(
+        low = 42,
+        high = 0
+    )
+
+    %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.wtb_dex_address) %}
+    %{ expect_revert() %}
+    WtbDexInterface.update_strategy_decrease_balance(
+        contract_address = wtb_dex_address,
+        asset_address = token_a_address,
+        asset_quantity = quantity
+    )
+    
+    %{ stop_prank_callable() %}
+    
+    return ()
+end
+
+@external
+func test_update_strategy_decrease_balance_remove_zero{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    alloc_locals
+
+    local caller_address
+    local wtb_dex_address
+    local token_a_address
+    local token_b_address
+    %{
+        ids.caller_address = context.caller_address
+        ids.wtb_dex_address = context.wtb_dex_address
+        ids.token_a_address = context.token_a_address
+        ids.token_b_address = context.token_b_address
+    %}
+    
+    test_update_strategy_increase_balance_success()
+
+    local quantity: Uint256 = Uint256(
+        low = 0,
+        high = 0
+    )
+
+    %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.wtb_dex_address) %}
+    WtbDexInterface.update_strategy_decrease_balance(
+        contract_address = wtb_dex_address,
+        asset_address = token_a_address,
+        asset_quantity = quantity
+    )
+
+    let (quantity_updated: Uint256) = WtbDexInterface.read_strategy_asset_balance(
+        contract_address = wtb_dex_address,
+        strategy_address = caller_address,
+        asset_address = token_a_address
+    )
+    local quantity: Uint256 = Uint256(
+        low = 14,
+        high = 0
+    )
+    assert quantity = quantity_updated
+    
+    %{ stop_prank_callable() %}
+
+    return ()
+end
+
