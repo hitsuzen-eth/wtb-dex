@@ -6,7 +6,9 @@ from src.type.oracle import AssetPriceStruct
 namespace OracleInterface:
     func read_asset_price(
         asset_address: felt,
-    ) -> (asset_price: AssetPriceStruct):
+    ) -> (
+        asset_price: AssetPriceStruct
+    ):
     end
 
     func update_asset_price(
@@ -16,7 +18,9 @@ namespace OracleInterface:
     end
 
     func read_owner_address(
-    ) -> (owner_address: felt):
+    ) -> (
+        owner_address: felt
+    ):
     end
 
     func update_owner_address(

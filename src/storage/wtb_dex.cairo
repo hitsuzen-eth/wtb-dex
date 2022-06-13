@@ -1,62 +1,43 @@
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
+from starkware.cairo.common.uint256 import Uint256
 
 @storage_var
-func strategy_list_storage(
-    id: felt,
+func strategy_asset_quantity_map_storage(
+    strategy_address: felt,
+    asset_address: felt,
 ) -> (
-    strategy_address: felt
+    quantity: Uint256
 ):
 end
 
-@storage_var
-func strategy_list_last_id_storage(
-) -> (
-    last_id: felt
-):
-end
 
 namespace WtbDexStorage:
 
-    func read_strategy_list_storage{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        id: felt
-    ) -> (
-        strategy_address: felt
-    ):
-
-        return strategy_list_storage.read(
-            id = id
-        )
-    end
-
-    func update_strategy_list_storage{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        id: felt,
+    func read_strategy_asset_quantity{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         strategy_address: felt,
-    ) -> ():
-
-        strategy_list_storage.write(
-            id = id,
-            value = strategy_address
-        )
-
-        return ()
-    end
-
-    func read_strategy_list_last_id_storage{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        asset_address: felt,
     ) -> (
-        last_id: felt
+        quantity: Uint256
     ):
 
-        return strategy_list_last_id_storage.read()
+        return strategy_asset_quantity_map_storage.read(
+            strategy_address = strategy_address,
+            asset_address = asset_address
+        )
     end
 
-    func update_strategy_list_last_id_storagee{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        last_id: felt,
+    func update_strategy_asset_quantity_map{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        strategy_address: felt,
+        asset_address: felt,
+        quantity: Uint256,
     ) -> ():
 
-        strategy_list_last_id_storage.write(
-            value = last_id
+        strategy_asset_quantity_map_storage.write(
+            strategy_address = strategy_address,
+            asset_address = asset_address,
+            value = quantity
         )
 
         return ()

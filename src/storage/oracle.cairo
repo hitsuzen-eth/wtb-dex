@@ -20,7 +20,7 @@ end
 
 namespace OracleStorage:
 
-    func read_asset_price_storage{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    func read_asset_price{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         asset_address: felt,
     ) -> (
         asset_price: AssetPriceStruct
@@ -31,7 +31,7 @@ namespace OracleStorage:
         )
     end
 
-    func update_asset_price_storage{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    func update_asset_price{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         asset_address: felt,
         asset_price: AssetPriceStruct,
     ) -> ():
@@ -44,14 +44,14 @@ namespace OracleStorage:
         return ()
     end
 
-    func read_owner_storage{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+    func read_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
         owner_address: felt
     ):
 
         return owner_storage.read()
     end
 
-    func update_owner_storage{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    func update_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         owner_address: felt
     ) -> ():
 

@@ -14,7 +14,7 @@ namespace OracleInteraction:
         owner : felt
     ):
 
-        OracleStorage.update_owner_storage(owner)
+        OracleStorage.update_owner(owner)
 
         return ()
     end
@@ -24,7 +24,7 @@ namespace OracleInteraction:
         asset_address: felt,
     ) -> (asset_price: AssetPriceStruct):
 
-        return OracleStorage.read_asset_price_storage(
+        return OracleStorage.read_asset_price(
             asset_address = asset_address
         )
     end
@@ -36,13 +36,13 @@ namespace OracleInteraction:
     ) -> ():
 
         let (caller_address) = get_caller_address()
-        let (owner_address) = OracleStorage.read_owner_storage()
+        let (owner_address) = OracleStorage.read_owner()
         OwnerLogic.check_is_owner(
             caller_address = caller_address,
             owner_address = owner_address
         )
 
-        OracleStorage.update_asset_price_storage(
+        OracleStorage.update_asset_price(
             asset_address = asset_address,
             asset_price = asset_price,
         )
@@ -54,7 +54,7 @@ namespace OracleInteraction:
     func read_owner_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     ) -> (owner_address: felt):
 
-        return OracleStorage.read_owner_storage()
+        return OracleStorage.read_owner()
     end
 
     @external
@@ -63,13 +63,13 @@ namespace OracleInteraction:
     ) -> ():
 
         let (caller_address) = get_caller_address()
-        let (owner_address) = OracleStorage.read_owner_storage()
+        let (owner_address) = OracleStorage.read_owner()
         OwnerLogic.check_is_owner(
             caller_address = caller_address,
             owner_address = owner_address
         )
 
-        OracleStorage.update_owner_storage(
+        OracleStorage.update_owner(
             owner_address = new_owner_address,
         )
         
