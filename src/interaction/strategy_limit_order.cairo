@@ -10,6 +10,7 @@ from openzeppelin.token.erc20.interfaces.IERC20 import IERC20
 from src.storage.strategy_limit_order import StrategyLimitOrderStorage
 from src.interface.wtb_dex import WtbDexInterface
 from src.logic.owner import OwnerLogic
+from src.type.limit_order_position import LimitOrderPositionStruct
 
 # One Limit order strategy is for testing purpose, in prod it's probably stupid
 # Merkle tree of limit order + ipfs may be feasible
@@ -34,7 +35,15 @@ namespace StrategyLimitOrderInteraction:
     ) -> (
         quantity: Uint256
     ):
-        return ()
+
+        let quantity: Uint256 = Uint256(
+            low = 0,
+            high = 0
+        )
+
+        return (
+            quantity = quantity
+        )
     end
 
     @external
@@ -85,13 +94,15 @@ namespace StrategyLimitOrderInteraction:
             asset_quantity = asset_in_quantity
         )
         
-        return ()
+        return (
+            position_id = position_id
+        )
     end
 
     @external
     func read_position{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         position_id: felt,
-    ) -> (position: StrategyLimitOrderStorage):
+    ) -> (position: LimitOrderPositionStruct):
         return StrategyLimitOrderStorage.read_position(position_id)
     end
 
@@ -101,7 +112,9 @@ namespace StrategyLimitOrderInteraction:
         owner_address: felt,
     ) -> ():
 
-        let (caller_address) = get_caller_address()
+        alloc_locals
+        
+        let (local caller_address) = get_caller_address()
 
         let (local position) = StrategyLimitOrderStorage.read_position(position_id)
 
@@ -110,11 +123,17 @@ namespace StrategyLimitOrderInteraction:
             owner_address = position.owner_address
         )
 
-        position.owner_address = owner_address
-
         StrategyLimitOrderStorage.update_position(
             id = position_id,
-            position = position
+            position = LimitOrderPositionStruct(
+                owner_address = owner_address, # Update owner_address
+                limit_asset_price = position.limit_asset_price,
+                asset_in_address = position.asset_in_address,
+                asset_in_quantity = position.asset_in_quantity,
+                asset_out_address = position.asset_out_address,
+                asset_out_quantity = position.asset_out_quantity,
+                is_partial = position.is_partial
+            )
         )
 
         return ()
@@ -126,7 +145,9 @@ namespace StrategyLimitOrderInteraction:
         limit_asset_price: Uint256,
     ) -> ():
 
-        let (caller_address) = get_caller_address()
+        alloc_locals
+
+        let (local caller_address) = get_caller_address()
 
         let (local position) = StrategyLimitOrderStorage.read_position(position_id)
 
@@ -135,11 +156,17 @@ namespace StrategyLimitOrderInteraction:
             owner_address = position.owner_address
         )
         
-        position.limit_asset_price = limit_asset_price
-        
         StrategyLimitOrderStorage.update_position(
             id = position_id,
-            position = position
+            position = LimitOrderPositionStruct(
+                owner_address = position.owner_address,
+                limit_asset_price = limit_asset_price, # Update limit_asset_price
+                asset_in_address = position.asset_in_address,
+                asset_in_quantity = position.asset_in_quantity,
+                asset_out_address = position.asset_out_address,
+                asset_out_quantity = position.asset_out_quantity,
+                is_partial = position.is_partial
+            )
         )
         return ()
     end
@@ -150,14 +177,24 @@ namespace StrategyLimitOrderInteraction:
         asset_quantity: Uint256,
     ) -> ():
 
+        alloc_locals
+
         let (local position) = StrategyLimitOrderStorage.read_position(position_id)
 
         # Increase balance of caller position
-        position.asset_in_quantity = SafeUint256.add(position.asset_in_quantity, asset_quantity)
+        let (local asset_in_quantity) = SafeUint256.add(position.asset_in_quantity, asset_quantity)
         
         StrategyLimitOrderStorage.update_position(
             id = position_id,
-            position = position
+            position = LimitOrderPositionStruct(
+                owner_address = position.owner_address,
+                limit_asset_price = position.limit_asset_price,
+                asset_in_address = position.asset_in_address,
+                asset_in_quantity = asset_in_quantity, # Update asset_in_quantity
+                asset_out_address = position.asset_out_address,
+                asset_out_quantity = position.asset_out_quantity,
+                is_partial = position.is_partial
+            )
         )
 
         # Fetch WTB DEX address
@@ -166,11 +203,11 @@ namespace StrategyLimitOrderInteraction:
         let (local caller_address) = get_caller_address()
 
         # Transfer asset_in from caller to WTB dex
-        IERC20.transferFrom(
-            contract_address = position.asset_in_address,
-            sender = caller_address,
-            recipient = wtb_dex_address,
-            amount = asset_quantity
+        WtbDexInterface.update_strategy_increase_balance(
+            contract_address = wtb_dex_address,
+            sender_address = caller_address,
+            asset_address = position.asset_in_address,
+            asset_quantity = asset_quantity
         )
 
         return ()
@@ -182,14 +219,24 @@ namespace StrategyLimitOrderInteraction:
         asset_quantity: Uint256,
     ) -> ():
 
+        alloc_locals
+
         let (local position) = StrategyLimitOrderStorage.read_position(position_id)
 
         # Decrease balance of caller position
-        position.asset_in_quantity = SafeUint256.(position.asset_in_quantity, asset_quantity)
+        let (local asset_in_quantity) = SafeUint256.sub_le(position.asset_in_quantity, asset_quantity)
         
         StrategyLimitOrderStorage.update_position(
             id = position_id,
-            position = position
+            position = LimitOrderPositionStruct(
+                owner_address = position.owner_address,
+                limit_asset_price = position.limit_asset_price,
+                asset_in_address = position.asset_in_address,
+                asset_in_quantity = asset_in_quantity, # Update asset_in_quantity
+                asset_out_address = position.asset_out_address,
+                asset_out_quantity = position.asset_out_quantity,
+                is_partial = position.is_partial
+            )
         )
 
         # Fetch WTB DEX address
@@ -197,29 +244,14 @@ namespace StrategyLimitOrderInteraction:
 
         let (local caller_address) = get_caller_address()
 
-        # Transfer asset_in from caller to WTB dex
-        IERC20.transferFrom(
-            contract_address = position.asset_in_address,
-            sender = caller_address,
-            recipient = wtb_dex_address,
-            amount
-        return ()
-    end
-
-    @external
-    func update_position_increase_asset_out{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        position_id: felt,
-        asset_quantity: Uint256,
-    ) -> ():
-
-        let (local position) = StrategyLimitOrderStorage.read_position(position_id)
-
-        position.limit_asset_price = limit_asset_price
-        
-        StrategyLimitOrderStorage.update_position(
-            id = position_id,
-            position = position
+        # Transfer asset_in from WTB dex to caller
+        WtbDexInterface.update_strategy_decrease_balance(
+            contract_address = wtb_dex_address,
+            recipient_address = caller_address,
+            asset_address = position.asset_in_address,
+            asset_quantity = asset_quantity
         )
+
         return ()
     end
 
@@ -229,14 +261,39 @@ namespace StrategyLimitOrderInteraction:
         asset_quantity: Uint256,
     ) -> ():
 
+        alloc_locals
+
         let (local position) = StrategyLimitOrderStorage.read_position(position_id)
 
-        position.limit_asset_price = limit_asset_price
+        # Decrease balance of caller position
+        let (asset_out_quantity) = SafeUint256.sub_le(position.asset_out_quantity, asset_quantity)
         
         StrategyLimitOrderStorage.update_position(
             id = position_id,
-            position = position
+            position = LimitOrderPositionStruct(
+                owner_address = position.owner_address,
+                limit_asset_price = position.limit_asset_price,
+                asset_in_address = position.asset_in_address,
+                asset_in_quantity = position.asset_in_quantity,
+                asset_out_address = position.asset_out_address,
+                asset_out_quantity = asset_out_quantity, # Update asset_out_quantity
+                is_partial = position.is_partial
+            )
         )
+
+        # Fetch WTB DEX address
+        let (local wtb_dex_address) = StrategyLimitOrderStorage.read_wtb_dex_address()
+
+        let (local caller_address) = get_caller_address()
+
+        # Transfer asset_out from WTB dex to caller
+        WtbDexInterface.update_strategy_decrease_balance(
+            contract_address = wtb_dex_address,
+            recipient_address = caller_address,
+            asset_address = position.asset_out_address,
+            asset_quantity = asset_quantity
+        )
+        
         return ()
     end
 
@@ -246,13 +303,28 @@ namespace StrategyLimitOrderInteraction:
         is_partial: felt,
     ) -> ():
 
+        alloc_locals
+
+        let (caller_address) = get_caller_address()
+
         let (local position) = StrategyLimitOrderStorage.read_position(position_id)
 
-        position.limit_asset_price = limit_asset_price
+        OwnerLogic.check_is_owner(
+            caller_address = caller_address,
+            owner_address = position.owner_address
+        )
         
         StrategyLimitOrderStorage.update_position(
             id = position_id,
-            position = position
+            position = LimitOrderPositionStruct(
+                owner_address = position.owner_address,
+                limit_asset_price = position.limit_asset_price,
+                asset_in_address = position.asset_in_address,
+                asset_in_quantity = position.asset_in_quantity,
+                asset_out_address = position.asset_out_address,
+                asset_out_quantity = position.asset_out_quantity,
+                is_partial = is_partial # Update is_partial
+            )
         )
         return ()
     end

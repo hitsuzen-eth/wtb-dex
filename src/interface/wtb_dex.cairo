@@ -13,12 +13,14 @@ namespace WtbDexInterface:
     end
 
     func update_strategy_increase_balance(
+        sender_address: felt,
         asset_address: felt,
         asset_quantity: Uint256,
     ) -> ():
     end
 
     func update_strategy_decrease_balance(
+        recipient_address: felt,
         asset_address: felt,
         asset_quantity: Uint256,
     ) -> ():

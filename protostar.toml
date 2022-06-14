@@ -14,3 +14,6 @@ oracle = [
 wtb_dex = [
     "./src/interaction/wtb_dex.cairo",
 ]
+strategy_limit_order = [
+    "./src/interaction/strategy_limit_order.cairo",
+]

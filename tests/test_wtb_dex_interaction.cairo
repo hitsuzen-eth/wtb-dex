@@ -78,6 +78,7 @@ func test_update_strategy_increase_balance_success{syscall_ptr : felt*, pedersen
     %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.wtb_dex_address) %}
     WtbDexInterface.update_strategy_increase_balance(
         contract_address = wtb_dex_address,
+        sender_address = caller_address,
         asset_address = token_a_address,
         asset_quantity = quantity
     )
@@ -109,6 +110,7 @@ func test_update_strategy_increase_balance_success{syscall_ptr : felt*, pedersen
     %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.wtb_dex_address) %}
     WtbDexInterface.update_strategy_increase_balance(
         contract_address = wtb_dex_address,
+        sender_address = caller_address,
         asset_address = token_a_address,
         asset_quantity = quantity_2
     )
@@ -156,6 +158,7 @@ func test_update_strategy_increase_balance_different_strategy{syscall_ptr : felt
     %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.wtb_dex_address) %}
     WtbDexInterface.update_strategy_increase_balance(
         contract_address = wtb_dex_address,
+        sender_address = caller_address,
         asset_address = token_a_address,
         asset_quantity = quantity
     )
@@ -195,6 +198,7 @@ func test_update_strategy_increase_balance_different_strategy{syscall_ptr : felt
     %{ stop_prank_callable = start_prank(context.caller_address + 1, target_contract_address=context.wtb_dex_address) %}
     WtbDexInterface.update_strategy_increase_balance(
         contract_address = wtb_dex_address,
+        sender_address = (caller_address + 1 ),
         asset_address = token_a_address,
         asset_quantity = quantity_2
     )
@@ -233,6 +237,7 @@ func test_update_strategy_increase_balance_add_zero{syscall_ptr : felt*, pederse
     %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.wtb_dex_address) %}
     WtbDexInterface.update_strategy_increase_balance(
         contract_address = wtb_dex_address,
+        sender_address = caller_address,
         asset_address = token_a_address,
         asset_quantity = quantity
     )
@@ -274,6 +279,7 @@ func test_update_strategy_decrease_balance_success{syscall_ptr : felt*, pedersen
     %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.wtb_dex_address) %}
     WtbDexInterface.update_strategy_decrease_balance(
         contract_address = wtb_dex_address,
+        recipient_address = caller_address,
         asset_address = token_a_address,
         asset_quantity = quantity
     )
@@ -301,6 +307,7 @@ func test_update_strategy_decrease_balance_success{syscall_ptr : felt*, pedersen
     %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.wtb_dex_address) %}
     WtbDexInterface.update_strategy_decrease_balance(
         contract_address = wtb_dex_address,
+        recipient_address = caller_address,
         asset_address = token_a_address,
         asset_quantity = quantity_2
     )
@@ -346,6 +353,7 @@ func test_update_strategy_decrease_balance_too_much{syscall_ptr : felt*, pederse
     %{ expect_revert() %}
     WtbDexInterface.update_strategy_decrease_balance(
         contract_address = wtb_dex_address,
+        recipient_address = caller_address,
         asset_address = token_a_address,
         asset_quantity = quantity
     )
@@ -379,6 +387,7 @@ func test_update_strategy_decrease_balance_empty{syscall_ptr : felt*, pedersen_p
     %{ expect_revert() %}
     WtbDexInterface.update_strategy_decrease_balance(
         contract_address = wtb_dex_address,
+        recipient_address = caller_address,
         asset_address = token_a_address,
         asset_quantity = quantity
     )
@@ -413,6 +422,7 @@ func test_update_strategy_decrease_balance_remove_zero{syscall_ptr : felt*, pede
     %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.wtb_dex_address) %}
     WtbDexInterface.update_strategy_decrease_balance(
         contract_address = wtb_dex_address,
+        recipient_address = caller_address,
         asset_address = token_a_address,
         asset_quantity = quantity
     )
