@@ -18,6 +18,12 @@ func position_len_storage() -> (
 ):
 end
 
+@storage_var
+func wtb_dex_address_storage() -> (
+    wtb_dex_address: felt
+):
+end
+
 namespace StrategyLimitOrderStorage:
 
     func create_position{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
@@ -63,6 +69,25 @@ namespace StrategyLimitOrderStorage:
         position_list_storage.write(
             id = id,
             value = position
+        )
+
+        return ()
+    end
+
+    func read_wtb_dex_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    ) -> (
+        wtb_dex_address: felt
+    ):
+
+        return wtb_dex_address_storage.read()
+    end
+
+    func update_wtb_dex_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        wtb_dex_address: felt,
+    ) -> ():
+
+        wtb_dex_address_storage.write(
+            value = wtb_dex_address
         )
 
         return ()

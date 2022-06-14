@@ -37,6 +37,7 @@ namespace WtbDexInteraction:
 
     @external
     func update_strategy_increase_balance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        sender_address: felt,
         asset_address: felt,
         asset_quantity: Uint256,
     ) -> ():
@@ -59,10 +60,10 @@ namespace WtbDexInteraction:
             quantity = _quantity
         )
 
-        # Transfer asset from the caller(strategy) to this contract
+        # Transfer asset from the sender(caller of strategy) to this contract
         IERC20.transferFrom(
             contract_address = asset_address,
-            sender = strategy_address,
+            sender = sender_address,
             recipient = this_address,
             amount = asset_quantity
         )
@@ -72,6 +73,7 @@ namespace WtbDexInteraction:
 
     @external
     func update_strategy_decrease_balance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        recipient_address: felt,
         asset_address: felt,
         asset_quantity: Uint256,
     ) -> ():
@@ -94,10 +96,10 @@ namespace WtbDexInteraction:
             quantity = _quantity
         )
 
-        # Transfer asset from this contract to the caller(strategy)
+        # Transfer asset from this contract to the recipient(caller of strategy)
         IERC20.transfer(
             contract_address = asset_address,
-            recipient = strategy_address,
+            recipient = recipient_address,
             amount = asset_quantity
         )
 
