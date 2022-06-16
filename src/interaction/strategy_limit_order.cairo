@@ -222,6 +222,12 @@ namespace StrategyLimitOrderInteraction:
         alloc_locals
 
         let (local position) = StrategyLimitOrderStorage.read_position(position_id)
+        let (local caller_address) = get_caller_address()
+
+        OwnerLogic.check_is_owner(
+            caller_address = caller_address,
+            owner_address = position.owner_address
+        )
 
         # Decrease balance of caller position
         let (local asset_in_quantity) = SafeUint256.sub_le(position.asset_in_quantity, asset_quantity)
@@ -241,8 +247,6 @@ namespace StrategyLimitOrderInteraction:
 
         # Fetch WTB DEX address
         let (local wtb_dex_address) = StrategyLimitOrderStorage.read_wtb_dex_address()
-
-        let (local caller_address) = get_caller_address()
 
         # Transfer asset_in from WTB dex to caller
         WtbDexInterface.update_strategy_decrease_balance(
@@ -264,6 +268,12 @@ namespace StrategyLimitOrderInteraction:
         alloc_locals
 
         let (local position) = StrategyLimitOrderStorage.read_position(position_id)
+        let (local caller_address) = get_caller_address()
+
+        OwnerLogic.check_is_owner(
+            caller_address = caller_address,
+            owner_address = position.owner_address
+        )
 
         # Decrease balance of caller position
         let (asset_out_quantity) = SafeUint256.sub_le(position.asset_out_quantity, asset_quantity)
@@ -283,8 +293,6 @@ namespace StrategyLimitOrderInteraction:
 
         # Fetch WTB DEX address
         let (local wtb_dex_address) = StrategyLimitOrderStorage.read_wtb_dex_address()
-
-        let (local caller_address) = get_caller_address()
 
         # Transfer asset_out from WTB dex to caller
         WtbDexInterface.update_strategy_decrease_balance(
