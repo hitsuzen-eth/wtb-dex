@@ -6,10 +6,7 @@ from starkware.starknet.common.syscalls import (
     get_caller_address,
     get_contract_address
 )
-from starkware.cairo.common.uint256 import (
-    Uint256,
-    uint256_le
-)
+from starkware.cairo.common.uint256 import Uint256
 
 from openzeppelin.security.safemath import SafeUint256
 from openzeppelin.token.erc20.interfaces.IERC20 import IERC20

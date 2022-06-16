@@ -1,7 +1,10 @@
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.uint256 import Uint256
+from starkware.cairo.common.uint256 import (
+    Uint256,
+    uint256_le
+)
 from starkware.starknet.common.syscalls import get_caller_address
 
 from openzeppelin.security.safemath import SafeUint256
@@ -10,7 +13,9 @@ from openzeppelin.token.erc20.interfaces.IERC20 import IERC20
 from src.storage.strategy_limit_order import StrategyLimitOrderStorage
 from src.interface.wtb_dex import WtbDexInterface
 from src.logic.owner import OwnerLogic
+from src.logic.strategy_limit_order import StrategyLimitOrderLogic
 from src.type.limit_order_position import LimitOrderPositionStruct
+
 
 # One Limit order strategy is for testing purpose, in prod it's probably stupid
 # Merkle tree of limit order + ipfs may be feasible
@@ -33,7 +38,7 @@ namespace StrategyLimitOrderInteraction:
         asset_in_quantity: Uint256,
         asset_out_address: felt
     ) -> (
-        quantity: Uint256
+        asset_out_quantity: Uint256
     ):
 
         alloc_locals
@@ -51,17 +56,24 @@ namespace StrategyLimitOrderInteraction:
         # Check if asset in address of caller is the asset out address of position 
         assert position.asset_out_address = asset_in_address
 
-        # Get decimals asset_in position(asset_out caller)
+        # Check if asset out address of caller is the asset in address of position 
+        assert position.asset_in_address = asset_out_address
 
-        let (local quantity, local dust) = SafeUint256.div_rem(asset_in_quantity, position.asset_out_min_quantity)
+        # Compute asset outquantity => ((caller_in * position_in)/position_out)
+        let (local asset_out_quantity) = SafeUint256.mul(asset_in_quantity, position.asset_in_quantity)
+        let (local asset_out_quantity, _) = SafeUint256.div_rem(asset_out_quantity, position.asset_out_quantity)
 
-        let quantity: Uint256 = Uint256(
-            low = 0,
-            high = 0
-        )
+        # if position.is_partial == 0:
+            # Check asset out quantity is equal to asset in quantity of this position
+            # assert 
+        # end
+        # Check asset out quantity is less than asset in quantity of this position
+        let (local is_asset_out_quantity_gt_pos_in) = uint256_le(asset_out_quantity, position.asset_in_quantity)
+
+        assert is_asset_out_quantity_gt_pos_in = 1
 
         return (
-            quantity = quantity
+            asset_out_quantity = asset_out_quantity
         )
     end
 
@@ -168,14 +180,15 @@ namespace StrategyLimitOrderInteraction:
 
         let (local position) = StrategyLimitOrderStorage.read_position(position_id)
 
-        # Increase balance of caller position
-        let (local asset_in_quantity) = SafeUint256.add(position.asset_in_quantity, asset_quantity)
-
-        # Compute new asset_out_min_quantity => out + ((new_in * out)/in)
-        let (local asset_out_min_quantity) = SafeUint256.mul(asset_quantity, position.asset_out_min_quantity)
-        let (local asset_out_min_quantity, _) = SafeUint256.div_rem(asset_out_min_quantity, position.asset_in_quantity)
-        let (local asset_out_min_quantity) = SafeUint256.add(asset_out_min_quantity, position.asset_out_min_quantity)
-
+        # Increase balance and expected asset quantity
+        let (
+            asset_in_quantity,
+            asset_out_min_quantity
+        ) = StrategyLimitOrderLogic.deposit_asset_in(
+            asset_quantity = asset_quantity,
+            asset_in_position_quantity = position.asset_in_quantity,
+            asset_out_position_min_quantity = position.asset_out_min_quantity,
+        )
         
         StrategyLimitOrderStorage.update_position(
             id = position_id,
@@ -222,13 +235,15 @@ namespace StrategyLimitOrderInteraction:
             owner_address = position.owner_address
         )
 
-        # Decrease balance of caller position
-        let (local asset_in_quantity) = SafeUint256.sub_le(position.asset_in_quantity, asset_quantity)
-
-        # Compute new asset_out_min_quantity => out - ((new_in * out)/in)
-        let (local asset_out_min_quantity) = SafeUint256.mul(asset_quantity, position.asset_out_min_quantity)
-        let (local asset_out_min_quantity, _) = SafeUint256.div_rem(asset_out_min_quantity, position.asset_in_quantity)
-        let (local asset_out_min_quantity) = SafeUint256.sub_le(position.asset_out_min_quantity, asset_out_min_quantity)
+        # Decrease balance and expected asset quantity
+        let (
+            asset_in_quantity,
+            asset_out_min_quantity
+        ) = StrategyLimitOrderLogic.withdraw_asset_in(
+            asset_quantity = asset_quantity,
+            asset_in_position_quantity = position.asset_in_quantity,
+            asset_out_position_min_quantity = position.asset_out_min_quantity,
+        )
         
         StrategyLimitOrderStorage.update_position(
             id = position_id,
