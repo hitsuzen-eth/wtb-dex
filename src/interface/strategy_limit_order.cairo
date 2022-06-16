@@ -24,10 +24,10 @@ namespace StrategyLimitOrderInterface:
 
     func create_position(
         owner_address: felt,
-        limit_asset_price: Uint256,
         asset_in_address: felt,
         asset_in_quantity: Uint256,
         asset_out_address: felt,
+        asset_out_min_quantity: Uint256,
         is_partial: felt
     ) -> (
         position_id: felt
@@ -44,13 +44,6 @@ namespace StrategyLimitOrderInterface:
     func update_position_owner_address(
         position_id: felt,
         owner_address: felt,
-    ) -> (
-    ):
-    end
-
-    func update_position_limit_asset_price(
-        position_id: felt,
-        limit_asset_price: Uint256,
     ) -> (
     ):
     end
@@ -79,6 +72,13 @@ namespace StrategyLimitOrderInterface:
     func update_position_is_partial(
         position_id: felt,
         is_partial: felt,
+    ) -> (
+    ):
+    end
+
+    func update_position_asset_out_min_quantity(
+        position_id: felt,
+        asset_out_min_quantity: Uint256,
     ) -> (
     ):
     end

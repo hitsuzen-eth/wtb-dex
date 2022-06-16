@@ -96,8 +96,8 @@ func test_create_position_success{syscall_ptr : felt*, pedersen_ptr : HashBuilti
         ids.token_b_address = context.token_b_address
     %}
     
-    let limit_asset_price: Uint256 = Uint256(
-        low = 10,
+    let asset_out_min_quantity: Uint256 = Uint256(
+        low = 4400,
         high = 0
     )
     
@@ -123,10 +123,10 @@ func test_create_position_success{syscall_ptr : felt*, pedersen_ptr : HashBuilti
     let (position_id) = StrategyLimitOrderInterface.create_position(
         contract_address = strategy_limit_order_address,
         owner_address = caller_address,
-        limit_asset_price = limit_asset_price,
         asset_in_address = token_a_address,
         asset_in_quantity = asset_in_quantity,
         asset_out_address = token_b_address,
+        asset_out_min_quantity = asset_out_min_quantity,
         is_partial = 1
     )
     %{ stop_prank_callable() %}
@@ -138,7 +138,7 @@ func test_create_position_success{syscall_ptr : felt*, pedersen_ptr : HashBuilti
 
     assert position_id = 0
     assert position.owner_address = caller_address
-    assert position.limit_asset_price = limit_asset_price
+    assert position.asset_out_min_quantity = asset_out_min_quantity
     assert position.asset_in_address = token_a_address
     assert position.asset_in_quantity = asset_in_quantity
     assert position.asset_out_address = token_b_address
@@ -154,8 +154,8 @@ func test_create_position_success{syscall_ptr : felt*, pedersen_ptr : HashBuilti
 
     ########
     
-    let limit_asset_price_2: Uint256 = Uint256(
-        low = 4,
+    let asset_out_min_quantity_2: Uint256 = Uint256(
+        low = 352,
         high = 0
     )
     
@@ -176,10 +176,10 @@ func test_create_position_success{syscall_ptr : felt*, pedersen_ptr : HashBuilti
     let (position_id_2) = StrategyLimitOrderInterface.create_position(
         contract_address = strategy_limit_order_address,
         owner_address = caller_address,
-        limit_asset_price = limit_asset_price_2,
         asset_in_address = token_a_address,
         asset_in_quantity = asset_in_quantity_2,
         asset_out_address = token_b_address,
+        asset_out_min_quantity = asset_out_min_quantity_2,
         is_partial = 1
     )
     %{ stop_prank_callable() %}
@@ -191,11 +191,11 @@ func test_create_position_success{syscall_ptr : felt*, pedersen_ptr : HashBuilti
 
     assert position_id_2 = 1
     assert position_2.owner_address = caller_address
-    assert position_2.limit_asset_price = limit_asset_price_2
     assert position_2.asset_in_address = token_a_address
     assert position_2.asset_in_quantity = asset_in_quantity_2
     assert position_2.asset_out_address = token_b_address
     assert position_2.asset_out_quantity = asset_out_quantity
+    assert position_2.asset_out_min_quantity = asset_out_min_quantity_2
     assert position_2.is_partial = 1
 
     let (balance_2) = IERC20.balanceOf(
@@ -226,8 +226,8 @@ func test_create_position_different_owner{syscall_ptr : felt*, pedersen_ptr : Ha
         ids.token_b_address = context.token_b_address
     %}
     
-    let limit_asset_price: Uint256 = Uint256(
-        low = 10,
+    let asset_out_min_quantity: Uint256 = Uint256(
+        low = 9432,
         high = 0
     )
     
@@ -253,10 +253,10 @@ func test_create_position_different_owner{syscall_ptr : felt*, pedersen_ptr : Ha
     let (position_id) = StrategyLimitOrderInterface.create_position(
         contract_address = strategy_limit_order_address,
         owner_address = (caller_address + 1),
-        limit_asset_price = limit_asset_price,
         asset_in_address = token_a_address,
         asset_in_quantity = asset_in_quantity,
         asset_out_address = token_b_address,
+        asset_out_min_quantity = asset_out_min_quantity,
         is_partial = 1
     )
     %{ stop_prank_callable() %}
@@ -295,8 +295,8 @@ func test_create_position_no_asset_in{syscall_ptr : felt*, pedersen_ptr : HashBu
         ids.token_b_address = context.token_b_address
     %}
     
-    let limit_asset_price: Uint256 = Uint256(
-        low = 10,
+    let asset_out_min_quantity: Uint256 = Uint256(
+        low = 9942,
         high = 0
     )
     
@@ -322,10 +322,10 @@ func test_create_position_no_asset_in{syscall_ptr : felt*, pedersen_ptr : HashBu
     let (position_id) = StrategyLimitOrderInterface.create_position(
         contract_address = strategy_limit_order_address,
         owner_address = caller_address,
-        limit_asset_price = limit_asset_price,
         asset_in_address = token_a_address,
         asset_in_quantity = asset_in_quantity,
         asset_out_address = token_b_address,
+        asset_out_min_quantity = asset_out_min_quantity,
         is_partial = 1
     )
     %{ stop_prank_callable() %}
@@ -416,84 +416,6 @@ func test_update_position_owner_address_not_owner{syscall_ptr : felt*, pedersen_
 end
 
 @external
-func test_update_position_limit_asset_price_success{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-    alloc_locals
-
-    local caller_address
-    local wtb_dex_address
-    local strategy_limit_order_address
-    local token_a_address
-    local token_b_address
-    %{
-        ids.caller_address = context.caller_address
-        ids.wtb_dex_address = context.wtb_dex_address
-        ids.strategy_limit_order_address = context.strategy_limit_order_address
-        ids.token_a_address = context.token_a_address
-        ids.token_b_address = context.token_b_address
-    %}
-
-    test_create_position_success()
-
-    let limit_asset_price: Uint256 = Uint256(
-        low = 42,
-        high = 0
-    )
-
-    %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.strategy_limit_order_address) %}
-    StrategyLimitOrderInterface.update_position_limit_asset_price(
-        contract_address = strategy_limit_order_address,
-        position_id = 1,
-        limit_asset_price = limit_asset_price,
-    )
-    %{ stop_prank_callable() %}
-
-    let (position) = StrategyLimitOrderInterface.read_position(
-        contract_address = strategy_limit_order_address,
-        position_id = 1
-    )
-
-    assert position.limit_asset_price = limit_asset_price
-    
-    return ()
-end
-
-@external
-func test_update_position_limit_asset_price_not_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-    alloc_locals
-
-    local caller_address
-    local wtb_dex_address
-    local strategy_limit_order_address
-    local token_a_address
-    local token_b_address
-    %{
-        ids.caller_address = context.caller_address
-        ids.wtb_dex_address = context.wtb_dex_address
-        ids.strategy_limit_order_address = context.strategy_limit_order_address
-        ids.token_a_address = context.token_a_address
-        ids.token_b_address = context.token_b_address
-    %}
-
-    test_create_position_success()
-
-    let limit_asset_price: Uint256 = Uint256(
-        low = 42,
-        high = 0
-    )
-
-    %{ stop_prank_callable = start_prank((context.caller_address + 10), target_contract_address=context.strategy_limit_order_address) %}
-    %{ expect_revert() %}
-    StrategyLimitOrderInterface.update_position_limit_asset_price(
-        contract_address = strategy_limit_order_address,
-        position_id = 1,
-        limit_asset_price = limit_asset_price,
-    )
-    %{ stop_prank_callable() %}
-    
-    return ()
-end
-
-@external
 func test_update_position_increase_asset_in_success{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
 
@@ -527,6 +449,15 @@ func test_update_position_increase_asset_in_success{syscall_ptr : felt*, pederse
         low = 42,
         high = 0
     )
+    # Price is 44
+    let (local asset_out_min_quantity) = SafeUint256.mul(
+        asset_in_quantity,
+        Uint256(
+            low = 44,
+            high = 0
+        )
+    )
+    let (local asset_out_min_quantity) = SafeUint256.add(asset_out_min_quantity, position.asset_out_min_quantity)
 
     %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.token_a_address) %}
     IERC20.approve(
@@ -551,6 +482,7 @@ func test_update_position_increase_asset_in_success{syscall_ptr : felt*, pederse
 
     let (local asset_in_quantity_old) = SafeUint256.add(asset_in_quantity_old, asset_in_quantity)
     assert position.asset_in_quantity = asset_in_quantity_old
+    assert position.asset_out_min_quantity = asset_out_min_quantity
 
     let (balance) = IERC20.balanceOf(
         contract_address = token_a_address,
@@ -675,6 +607,15 @@ func test_update_position_decrease_asset_in_success{syscall_ptr : felt*, pederse
         low = 5,
         high = 0
     )
+    # Price is 44
+    let (local asset_out_min_quantity) = SafeUint256.mul(
+        asset_in_quantity,
+        Uint256(
+            low = 44,
+            high = 0
+        )
+    )
+    let (local asset_out_min_quantity) = SafeUint256.sub_le(position.asset_out_min_quantity, asset_out_min_quantity)
 
     %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.strategy_limit_order_address) %}
     StrategyLimitOrderInterface.update_position_decrease_asset_in(
@@ -691,6 +632,7 @@ func test_update_position_decrease_asset_in_success{syscall_ptr : felt*, pederse
 
     let (local asset_in_quantity_old) = SafeUint256.sub_le(asset_in_quantity_old, asset_in_quantity)
     assert position.asset_in_quantity = asset_in_quantity_old
+    assert position.asset_out_min_quantity = asset_out_min_quantity
 
     let (balance) = IERC20.balanceOf(
         contract_address = token_a_address,
@@ -733,6 +675,84 @@ func test_update_position_decrease_asset_in_not_owner{syscall_ptr : felt*, peder
         contract_address = strategy_limit_order_address,
         position_id = 1,
         asset_quantity = asset_in_quantity,
+    )
+    %{ stop_prank_callable() %}
+    
+    return ()
+end
+
+@external
+func test_update_position_asset_out_min_quantity_success{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    alloc_locals
+
+    local caller_address
+    local wtb_dex_address
+    local strategy_limit_order_address
+    local token_a_address
+    local token_b_address
+    %{
+        ids.caller_address = context.caller_address
+        ids.wtb_dex_address = context.wtb_dex_address
+        ids.strategy_limit_order_address = context.strategy_limit_order_address
+        ids.token_a_address = context.token_a_address
+        ids.token_b_address = context.token_b_address
+    %}
+
+    test_create_position_success()
+
+    let asset_out_min_quantity: Uint256 = Uint256(
+        low = 999,
+        high = 0
+    )
+
+    %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.strategy_limit_order_address) %}
+    StrategyLimitOrderInterface.update_position_asset_out_min_quantity(
+        contract_address = strategy_limit_order_address,
+        position_id = 1,
+        asset_out_min_quantity = asset_out_min_quantity,
+    )
+    %{ stop_prank_callable() %}
+
+    let (position) = StrategyLimitOrderInterface.read_position(
+        contract_address = strategy_limit_order_address,
+        position_id = 1
+    )
+
+    assert position.asset_out_min_quantity = asset_out_min_quantity
+    
+    return ()
+end
+
+@external
+func test_update_position_asset_out_min_quantity_not_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    alloc_locals
+
+    local caller_address
+    local wtb_dex_address
+    local strategy_limit_order_address
+    local token_a_address
+    local token_b_address
+    %{
+        ids.caller_address = context.caller_address
+        ids.wtb_dex_address = context.wtb_dex_address
+        ids.strategy_limit_order_address = context.strategy_limit_order_address
+        ids.token_a_address = context.token_a_address
+        ids.token_b_address = context.token_b_address
+    %}
+
+    test_create_position_success()
+
+    let asset_out_min_quantity: Uint256 = Uint256(
+        low = 42,
+        high = 0
+    )
+
+    %{ stop_prank_callable = start_prank((context.caller_address + 10), target_contract_address=context.strategy_limit_order_address) %}
+    %{ expect_revert() %}
+    StrategyLimitOrderInterface.update_position_asset_out_min_quantity(
+        contract_address = strategy_limit_order_address,
+        position_id = 1,
+        asset_out_min_quantity = asset_out_min_quantity,
     )
     %{ stop_prank_callable() %}
     

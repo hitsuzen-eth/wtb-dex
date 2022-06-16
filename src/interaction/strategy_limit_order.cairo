@@ -36,6 +36,25 @@ namespace StrategyLimitOrderInteraction:
         quantity: Uint256
     ):
 
+        alloc_locals
+
+        # Only wtb dex can create a swap
+        let (local caller_address) = get_caller_address()
+        let (local wtb_dex_address) = StrategyLimitOrderStorage.read_wtb_dex_address()
+        OwnerLogic.check_is_owner(
+            caller_address = caller_address,
+            owner_address = wtb_dex_address
+        )
+
+        let (local position) = StrategyLimitOrderStorage.read_position(position_id)
+
+        # Check if asset in address of caller is the asset out address of position 
+        assert position.asset_out_address = asset_in_address
+
+        # Get decimals asset_in position(asset_out caller)
+
+        let (local quantity, local dust) = SafeUint256.div_rem(asset_in_quantity, position.asset_out_min_quantity)
+
         let quantity: Uint256 = Uint256(
             low = 0,
             high = 0
@@ -55,10 +74,10 @@ namespace StrategyLimitOrderInteraction:
     @external
     func create_position{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         owner_address: felt,
-        limit_asset_price: Uint256,
         asset_in_address: felt,
         asset_in_quantity: Uint256,
         asset_out_address: felt,
+        asset_out_min_quantity: Uint256,
         is_partial: felt
     ) -> (
         position_id: felt
@@ -70,7 +89,6 @@ namespace StrategyLimitOrderInteraction:
         let (local position_id) = StrategyLimitOrderStorage.create_position(
             position = LimitOrderPositionStruct(
                 owner_address = owner_address,
-                limit_asset_price = limit_asset_price,
                 asset_in_address = asset_in_address,
                 asset_in_quantity = asset_in_quantity,
                 asset_out_address = asset_out_address,
@@ -78,6 +96,7 @@ namespace StrategyLimitOrderInteraction:
                     low = 0,
                     high = 0
                 ),
+                asset_out_min_quantity = asset_out_min_quantity,
                 is_partial = is_partial
             )
         )
@@ -127,47 +146,15 @@ namespace StrategyLimitOrderInteraction:
             id = position_id,
             position = LimitOrderPositionStruct(
                 owner_address = owner_address, # Update owner_address
-                limit_asset_price = position.limit_asset_price,
                 asset_in_address = position.asset_in_address,
                 asset_in_quantity = position.asset_in_quantity,
                 asset_out_address = position.asset_out_address,
                 asset_out_quantity = position.asset_out_quantity,
+                asset_out_min_quantity = position.asset_out_min_quantity,
                 is_partial = position.is_partial
             )
         )
 
-        return ()
-    end
-
-    @external
-    func update_position_limit_asset_price{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        position_id: felt,
-        limit_asset_price: Uint256,
-    ) -> ():
-
-        alloc_locals
-
-        let (local caller_address) = get_caller_address()
-
-        let (local position) = StrategyLimitOrderStorage.read_position(position_id)
-
-        OwnerLogic.check_is_owner(
-            caller_address = caller_address,
-            owner_address = position.owner_address
-        )
-        
-        StrategyLimitOrderStorage.update_position(
-            id = position_id,
-            position = LimitOrderPositionStruct(
-                owner_address = position.owner_address,
-                limit_asset_price = limit_asset_price, # Update limit_asset_price
-                asset_in_address = position.asset_in_address,
-                asset_in_quantity = position.asset_in_quantity,
-                asset_out_address = position.asset_out_address,
-                asset_out_quantity = position.asset_out_quantity,
-                is_partial = position.is_partial
-            )
-        )
         return ()
     end
 
@@ -183,16 +170,22 @@ namespace StrategyLimitOrderInteraction:
 
         # Increase balance of caller position
         let (local asset_in_quantity) = SafeUint256.add(position.asset_in_quantity, asset_quantity)
+
+        # Compute new asset_out_min_quantity => out + ((new_in * out)/in)
+        let (local asset_out_min_quantity) = SafeUint256.mul(asset_quantity, position.asset_out_min_quantity)
+        let (local asset_out_min_quantity, _) = SafeUint256.div_rem(asset_out_min_quantity, position.asset_in_quantity)
+        let (local asset_out_min_quantity) = SafeUint256.add(asset_out_min_quantity, position.asset_out_min_quantity)
+
         
         StrategyLimitOrderStorage.update_position(
             id = position_id,
             position = LimitOrderPositionStruct(
                 owner_address = position.owner_address,
-                limit_asset_price = position.limit_asset_price,
                 asset_in_address = position.asset_in_address,
                 asset_in_quantity = asset_in_quantity, # Update asset_in_quantity
                 asset_out_address = position.asset_out_address,
                 asset_out_quantity = position.asset_out_quantity,
+                asset_out_min_quantity = asset_out_min_quantity, # Update asset_out_min_quantity
                 is_partial = position.is_partial
             )
         )
@@ -231,16 +224,21 @@ namespace StrategyLimitOrderInteraction:
 
         # Decrease balance of caller position
         let (local asset_in_quantity) = SafeUint256.sub_le(position.asset_in_quantity, asset_quantity)
+
+        # Compute new asset_out_min_quantity => out - ((new_in * out)/in)
+        let (local asset_out_min_quantity) = SafeUint256.mul(asset_quantity, position.asset_out_min_quantity)
+        let (local asset_out_min_quantity, _) = SafeUint256.div_rem(asset_out_min_quantity, position.asset_in_quantity)
+        let (local asset_out_min_quantity) = SafeUint256.sub_le(position.asset_out_min_quantity, asset_out_min_quantity)
         
         StrategyLimitOrderStorage.update_position(
             id = position_id,
             position = LimitOrderPositionStruct(
                 owner_address = position.owner_address,
-                limit_asset_price = position.limit_asset_price,
                 asset_in_address = position.asset_in_address,
                 asset_in_quantity = asset_in_quantity, # Update asset_in_quantity
                 asset_out_address = position.asset_out_address,
                 asset_out_quantity = position.asset_out_quantity,
+                asset_out_min_quantity = asset_out_min_quantity, # Update asset_out_min_quantity
                 is_partial = position.is_partial
             )
         )
@@ -282,11 +280,11 @@ namespace StrategyLimitOrderInteraction:
             id = position_id,
             position = LimitOrderPositionStruct(
                 owner_address = position.owner_address,
-                limit_asset_price = position.limit_asset_price,
                 asset_in_address = position.asset_in_address,
                 asset_in_quantity = position.asset_in_quantity,
                 asset_out_address = position.asset_out_address,
                 asset_out_quantity = asset_out_quantity, # Update asset_out_quantity
+                asset_out_min_quantity = position.asset_out_min_quantity,
                 is_partial = position.is_partial
             )
         )
@@ -302,6 +300,38 @@ namespace StrategyLimitOrderInteraction:
             asset_quantity = asset_quantity
         )
         
+        return ()
+    end
+
+    @external
+    func update_position_asset_out_min_quantity{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        position_id: felt,
+        asset_out_min_quantity: Uint256,
+    ) -> ():
+
+        alloc_locals
+
+        let (local caller_address) = get_caller_address()
+
+        let (local position) = StrategyLimitOrderStorage.read_position(position_id)
+
+        OwnerLogic.check_is_owner(
+            caller_address = caller_address,
+            owner_address = position.owner_address
+        )
+        
+        StrategyLimitOrderStorage.update_position(
+            id = position_id,
+            position = LimitOrderPositionStruct(
+                owner_address = position.owner_address,
+                asset_in_address = position.asset_in_address,
+                asset_in_quantity = position.asset_in_quantity,
+                asset_out_address = position.asset_out_address,
+                asset_out_quantity = position.asset_out_quantity,
+                asset_out_min_quantity = asset_out_min_quantity, # Update asset_out_min_quantity
+                is_partial = position.is_partial
+            )
+        )
         return ()
     end
 
@@ -326,11 +356,11 @@ namespace StrategyLimitOrderInteraction:
             id = position_id,
             position = LimitOrderPositionStruct(
                 owner_address = position.owner_address,
-                limit_asset_price = position.limit_asset_price,
                 asset_in_address = position.asset_in_address,
                 asset_in_quantity = position.asset_in_quantity,
                 asset_out_address = position.asset_out_address,
                 asset_out_quantity = position.asset_out_quantity,
+                asset_out_min_quantity = position.asset_out_min_quantity,
                 is_partial = is_partial # Update is_partial
             )
         )
