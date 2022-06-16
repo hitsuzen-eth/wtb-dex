@@ -89,6 +89,13 @@ func test_update_strategy_increase_balance_success{syscall_ptr : felt*, pedersen
         asset_address = token_a_address
     )
     assert quantity = quantity_updated
+
+    let (balance) = IERC20.balanceOf(
+        contract_address = token_a_address,
+        account = wtb_dex_address,
+    )
+    
+    assert balance = quantity
     
     %{ stop_prank_callable() %}
     
@@ -122,6 +129,13 @@ func test_update_strategy_increase_balance_success{syscall_ptr : felt*, pedersen
     )
     let (local quantity_2) = SafeUint256.add(quantity_2, quantity)
     assert quantity_2 = quantity_updated
+
+    let (local balance_2) = IERC20.balanceOf(
+        contract_address = token_a_address,
+        account = wtb_dex_address,
+    )
+    
+    assert balance_2 = quantity_2
     
     %{ stop_prank_callable() %}
     return ()
@@ -169,6 +183,13 @@ func test_update_strategy_increase_balance_different_strategy{syscall_ptr : felt
         asset_address = token_a_address
     )
     assert quantity = quantity_updated
+
+    let (balance) = IERC20.balanceOf(
+        contract_address = token_a_address,
+        account = wtb_dex_address,
+    )
+    
+    assert balance = quantity
     
     %{ stop_prank_callable() %}
     
@@ -209,6 +230,15 @@ func test_update_strategy_increase_balance_different_strategy{syscall_ptr : felt
         asset_address = token_a_address
     )
     assert quantity_2 = quantity_updated
+
+    let (local quantity_2) = SafeUint256.add(quantity_2, quantity)
+
+    let (balance_2) = IERC20.balanceOf(
+        contract_address = token_a_address,
+        account = wtb_dex_address,
+    )
+    
+    assert balance_2 = quantity_2
     
     %{ stop_prank_callable() %}
     return ()
@@ -250,6 +280,13 @@ func test_update_strategy_increase_balance_add_zero{syscall_ptr : felt*, pederse
     assert quantity = quantity_updated
     
     %{ stop_prank_callable() %}
+
+    let (balance) = IERC20.balanceOf(
+        contract_address = token_a_address,
+        account = wtb_dex_address,
+    )
+    
+    assert balance = quantity
     
     return ()
 end
@@ -296,6 +333,13 @@ func test_update_strategy_decrease_balance_success{syscall_ptr : felt*, pedersen
     assert quantity = quantity_updated
     
     %{ stop_prank_callable() %}
+
+    let (balance) = IERC20.balanceOf(
+        contract_address = token_a_address,
+        account = wtb_dex_address,
+    )
+    
+    assert balance = quantity
     
     ##################
 
@@ -324,6 +368,14 @@ func test_update_strategy_decrease_balance_success{syscall_ptr : felt*, pedersen
     assert quantity_2 = quantity_updated
     
     %{ stop_prank_callable() %}
+
+    let (balance_2) = IERC20.balanceOf(
+        contract_address = token_a_address,
+        account = wtb_dex_address,
+    )
+    
+    assert balance_2 = quantity_2
+
     return ()
 end
 
@@ -439,6 +491,13 @@ func test_update_strategy_decrease_balance_remove_zero{syscall_ptr : felt*, pede
     assert quantity = quantity_updated
     
     %{ stop_prank_callable() %}
+
+    let (balance) = IERC20.balanceOf(
+        contract_address = token_a_address,
+        account = wtb_dex_address,
+    )
+    
+    assert balance = quantity
 
     return ()
 end
