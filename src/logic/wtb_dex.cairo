@@ -10,20 +10,20 @@ from starkware.cairo.common.uint256 import (
 namespace WtbDexLogic:
 
     func is_swap_valid{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        asset_out_min_quantity: Uint256,
-        asset_out_quantity_offered: Uint256,
-        asset_out_quantity_owned: Uint256
+        taker_wtb_asset_min_quantity: Uint256,
+        taker_wtb_asset_quantity: Uint256,
+        maker_wts_asset_quantity: Uint256
     ) -> (is_valid: felt):
         alloc_locals
 
-        # Check if the quantity offered match the min quantity asked by caller
-        let (local is_offered_gt_min) = uint256_le(asset_out_min_quantity, asset_out_quantity_offered)
+        # Check if wtb min quantity by taker is less or equal to wtb quantity offered by maker
+        let (local is_min_ok) = uint256_le(taker_wtb_asset_min_quantity, taker_wtb_asset_quantity)
 
-        # Check that the strategy has enough asset_out to perform the swap 
-        let (local is_owned_gt_offered) = uint256_le(asset_out_quantity_offered, asset_out_quantity_owned)
+        # Check that the strategy has enough wts asset to perform the swap 
+        let (local is_funded) = uint256_le(maker_wts_asset_quantity, maker_wts_asset_quantity)
 
         # If both condition are true, swap is valid
-        local is_valid = is_offered_gt_min + is_owned_gt_offered
+        local is_valid = is_min_ok + is_funded
 
         if is_valid == 2:
             return (

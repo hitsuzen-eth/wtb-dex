@@ -29,10 +29,10 @@ namespace WtbDexInterface:
     func create_swap(
         strategy_address: felt,
         position_id: felt,
-        asset_in_address: felt,
-        asset_in_quantity: Uint256,
-        asset_out_address: felt,
-        asset_out_min_quantity: Uint256
+        taker_wts_asset_address: felt,
+        taker_wts_asset_quantity: Uint256,
+        taker_wtb_asset_address: felt,
+        taker_wtb_asset_min_quantity: Uint256
     ) -> ():
     end
 end

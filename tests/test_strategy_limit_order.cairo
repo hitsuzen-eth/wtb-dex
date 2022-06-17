@@ -96,17 +96,17 @@ func test_create_position_success{syscall_ptr : felt*, pedersen_ptr : HashBuilti
         ids.token_b_address = context.token_b_address
     %}
     
-    let asset_out_min_quantity: Uint256 = Uint256(
-        low = 4400,
-        high = 0
-    )
-    
-    let asset_in_quantity: Uint256 = Uint256(
+    let maker_wts_asset_quantity: Uint256 = Uint256(
         low = 100,
         high = 0
     )
     
-    let asset_out_quantity: Uint256 = Uint256(
+    let maker_wtb_asset_min_quantity: Uint256 = Uint256(
+        low = 4400,
+        high = 0
+    )
+    
+    let maker_wtb_asset_quantity: Uint256 = Uint256(
         low = 0,
         high = 0
     )
@@ -115,7 +115,7 @@ func test_create_position_success{syscall_ptr : felt*, pedersen_ptr : HashBuilti
     IERC20.approve(
         contract_address = token_a_address,
         spender = wtb_dex_address,
-        amount = asset_in_quantity,
+        amount = maker_wts_asset_quantity,
     )
     %{ stop_prank_callable() %}
 
@@ -123,10 +123,10 @@ func test_create_position_success{syscall_ptr : felt*, pedersen_ptr : HashBuilti
     let (position_id) = StrategyLimitOrderInterface.create_position(
         contract_address = strategy_limit_order_address,
         owner_address = caller_address,
-        asset_in_address = token_a_address,
-        asset_in_quantity = asset_in_quantity,
-        asset_out_address = token_b_address,
-        asset_out_min_quantity = asset_out_min_quantity,
+        maker_wts_asset_address = token_a_address,
+        maker_wts_asset_quantity = maker_wts_asset_quantity,
+        maker_wtb_asset_address = token_b_address,
+        maker_wtb_asset_min_quantity = maker_wtb_asset_min_quantity,
         is_partial = 1
     )
     %{ stop_prank_callable() %}
@@ -138,11 +138,11 @@ func test_create_position_success{syscall_ptr : felt*, pedersen_ptr : HashBuilti
 
     assert position_id = 0
     assert position.owner_address = caller_address
-    assert position.asset_out_min_quantity = asset_out_min_quantity
-    assert position.asset_in_address = token_a_address
-    assert position.asset_in_quantity = asset_in_quantity
-    assert position.asset_out_address = token_b_address
-    assert position.asset_out_quantity = asset_out_quantity
+    assert position.maker_wts_asset_address = token_a_address
+    assert position.maker_wts_asset_quantity = maker_wts_asset_quantity
+    assert position.maker_wtb_asset_address = token_b_address
+    assert position.maker_wtb_asset_quantity = maker_wtb_asset_quantity
+    assert position.maker_wtb_asset_min_quantity = maker_wtb_asset_min_quantity
     assert position.is_partial = 1
 
     let (balance) = IERC20.balanceOf(
@@ -150,17 +150,17 @@ func test_create_position_success{syscall_ptr : felt*, pedersen_ptr : HashBuilti
         account = wtb_dex_address,
     )
     
-    assert balance = asset_in_quantity
+    assert balance = maker_wts_asset_quantity
 
     ########
     
-    let asset_out_min_quantity_2: Uint256 = Uint256(
-        low = 352,
+    let maker_wts_asset_quantity_2: Uint256 = Uint256(
+        low = 8,
         high = 0
     )
     
-    let asset_in_quantity_2: Uint256 = Uint256(
-        low = 8,
+    let maker_wtb_asset_min_quantity_2: Uint256 = Uint256(
+        low = 352,
         high = 0
     )
     
@@ -168,7 +168,7 @@ func test_create_position_success{syscall_ptr : felt*, pedersen_ptr : HashBuilti
     IERC20.approve(
         contract_address = token_a_address,
         spender = wtb_dex_address,
-        amount = asset_in_quantity_2,
+        amount = maker_wts_asset_quantity_2,
     )
     %{ stop_prank_callable() %}
 
@@ -176,10 +176,10 @@ func test_create_position_success{syscall_ptr : felt*, pedersen_ptr : HashBuilti
     let (position_id_2) = StrategyLimitOrderInterface.create_position(
         contract_address = strategy_limit_order_address,
         owner_address = caller_address,
-        asset_in_address = token_a_address,
-        asset_in_quantity = asset_in_quantity_2,
-        asset_out_address = token_b_address,
-        asset_out_min_quantity = asset_out_min_quantity_2,
+        maker_wts_asset_address = token_a_address,
+        maker_wts_asset_quantity = maker_wts_asset_quantity_2,
+        maker_wtb_asset_address = token_b_address,
+        maker_wtb_asset_min_quantity = maker_wtb_asset_min_quantity_2,
         is_partial = 1
     )
     %{ stop_prank_callable() %}
@@ -190,12 +190,12 @@ func test_create_position_success{syscall_ptr : felt*, pedersen_ptr : HashBuilti
     )
 
     assert position_id_2 = 1
-    assert position_2.owner_address = caller_address
-    assert position_2.asset_in_address = token_a_address
-    assert position_2.asset_in_quantity = asset_in_quantity_2
-    assert position_2.asset_out_address = token_b_address
-    assert position_2.asset_out_quantity = asset_out_quantity
-    assert position_2.asset_out_min_quantity = asset_out_min_quantity_2
+    assert position.owner_address = caller_address
+    assert position_2.maker_wts_asset_address = token_a_address
+    assert position_2.maker_wts_asset_quantity = maker_wts_asset_quantity_2
+    assert position_2.maker_wtb_asset_address = token_b_address
+    assert position_2.maker_wtb_asset_quantity = maker_wtb_asset_quantity
+    assert position_2.maker_wtb_asset_min_quantity = maker_wtb_asset_min_quantity_2
     assert position_2.is_partial = 1
 
     let (balance_2) = IERC20.balanceOf(
@@ -203,8 +203,8 @@ func test_create_position_success{syscall_ptr : felt*, pedersen_ptr : HashBuilti
         account = wtb_dex_address,
     )
     
-    let (local asset_in_quantity_2) = SafeUint256.add(asset_in_quantity, asset_in_quantity_2)
-    assert balance_2 = asset_in_quantity_2
+    let (local sum_maker_wts_asset) = SafeUint256.add(maker_wts_asset_quantity, maker_wts_asset_quantity_2)
+    assert balance_2 = sum_maker_wts_asset
     
     return ()
 end
@@ -226,18 +226,18 @@ func test_create_position_different_owner{syscall_ptr : felt*, pedersen_ptr : Ha
         ids.token_b_address = context.token_b_address
     %}
     
-    let asset_out_min_quantity: Uint256 = Uint256(
-        low = 9432,
-        high = 0
-    )
-    
-    let asset_in_quantity: Uint256 = Uint256(
+    let maker_wts_asset_quantity: Uint256 = Uint256(
         low = 100,
         high = 0
     )
     
-    let asset_out_quantity: Uint256 = Uint256(
+    let maker_wtb_asset_quantity: Uint256 = Uint256(
         low = 0,
+        high = 0
+    )
+    
+    let maker_wtb_asset_min_quantity: Uint256 = Uint256(
+        low = 9432,
         high = 0
     )
     
@@ -245,7 +245,7 @@ func test_create_position_different_owner{syscall_ptr : felt*, pedersen_ptr : Ha
     IERC20.approve(
         contract_address = token_a_address,
         spender = wtb_dex_address,
-        amount = asset_in_quantity,
+        amount = maker_wts_asset_quantity,
     )
     %{ stop_prank_callable() %}
 
@@ -253,10 +253,10 @@ func test_create_position_different_owner{syscall_ptr : felt*, pedersen_ptr : Ha
     let (position_id) = StrategyLimitOrderInterface.create_position(
         contract_address = strategy_limit_order_address,
         owner_address = (caller_address + 1),
-        asset_in_address = token_a_address,
-        asset_in_quantity = asset_in_quantity,
-        asset_out_address = token_b_address,
-        asset_out_min_quantity = asset_out_min_quantity,
+        maker_wts_asset_address = token_a_address,
+        maker_wts_asset_quantity = maker_wts_asset_quantity,
+        maker_wtb_asset_address = token_b_address,
+        maker_wtb_asset_min_quantity = maker_wtb_asset_min_quantity,
         is_partial = 1
     )
     %{ stop_prank_callable() %}
@@ -273,13 +273,13 @@ func test_create_position_different_owner{syscall_ptr : felt*, pedersen_ptr : Ha
         account = wtb_dex_address,
     )
     
-    assert balance = asset_in_quantity
+    assert balance = maker_wts_asset_quantity
 
     return ()
 end
 
 @external
-func test_create_position_no_asset_in{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+func test_create_position_no_wts_asset{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
 
     local caller_address
@@ -295,18 +295,18 @@ func test_create_position_no_asset_in{syscall_ptr : felt*, pedersen_ptr : HashBu
         ids.token_b_address = context.token_b_address
     %}
     
-    let asset_out_min_quantity: Uint256 = Uint256(
+    let maker_wts_asset_quantity: Uint256 = Uint256(
+        low = 0,
+        high = 0
+    )
+    
+    let maker_wtb_asset_quantity: Uint256 = Uint256(
+        low = 0,
+        high = 0
+    )
+    
+    let maker_wtb_asset_min_quantity: Uint256 = Uint256(
         low = 9942,
-        high = 0
-    )
-    
-    let asset_in_quantity: Uint256 = Uint256(
-        low = 0,
-        high = 0
-    )
-    
-    let asset_out_quantity: Uint256 = Uint256(
-        low = 0,
         high = 0
     )
     
@@ -314,7 +314,7 @@ func test_create_position_no_asset_in{syscall_ptr : felt*, pedersen_ptr : HashBu
     IERC20.approve(
         contract_address = token_a_address,
         spender = wtb_dex_address,
-        amount = asset_in_quantity,
+        amount = maker_wts_asset_quantity,
     )
     %{ stop_prank_callable() %}
 
@@ -322,10 +322,10 @@ func test_create_position_no_asset_in{syscall_ptr : felt*, pedersen_ptr : HashBu
     let (position_id) = StrategyLimitOrderInterface.create_position(
         contract_address = strategy_limit_order_address,
         owner_address = caller_address,
-        asset_in_address = token_a_address,
-        asset_in_quantity = asset_in_quantity,
-        asset_out_address = token_b_address,
-        asset_out_min_quantity = asset_out_min_quantity,
+        maker_wts_asset_address = token_a_address,
+        maker_wts_asset_quantity = maker_wts_asset_quantity,
+        maker_wtb_asset_address = token_b_address,
+        maker_wtb_asset_min_quantity = maker_wtb_asset_min_quantity,
         is_partial = 1
     )
     %{ stop_prank_callable() %}
@@ -335,14 +335,14 @@ func test_create_position_no_asset_in{syscall_ptr : felt*, pedersen_ptr : HashBu
         position_id = position_id
     )
 
-    assert position.asset_in_quantity = asset_in_quantity
+    assert position.maker_wts_asset_quantity = maker_wts_asset_quantity
 
     let (balance) = IERC20.balanceOf(
         contract_address = token_a_address,
         account = wtb_dex_address,
     )
     
-    assert balance = asset_in_quantity
+    assert balance = maker_wts_asset_quantity
 
     return ()
 end
@@ -416,7 +416,7 @@ func test_update_position_owner_address_not_owner{syscall_ptr : felt*, pedersen_
 end
 
 @external
-func test_update_position_increase_asset_in_success{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+func test_update_position_increase_wts_asset_success{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
 
     local caller_address
@@ -434,7 +434,7 @@ func test_update_position_increase_asset_in_success{syscall_ptr : felt*, pederse
 
     test_create_position_success()
 
-    let (local balance_old) = IERC20.balanceOf(
+    let (local old_balance) = IERC20.balanceOf(
         contract_address = token_a_address,
         account = wtb_dex_address,
     )
@@ -443,35 +443,36 @@ func test_update_position_increase_asset_in_success{syscall_ptr : felt*, pederse
         contract_address = strategy_limit_order_address,
         position_id = 0
     )
-    local asset_in_quantity_old: Uint256 = position.asset_in_quantity
 
-    let asset_in_quantity: Uint256 = Uint256(
+    local old_maker_wts_asset_quantity: Uint256 = position.maker_wts_asset_quantity
+
+    let deposit_asset_quantity: Uint256 = Uint256(
         low = 42,
         high = 0
     )
     # Price is 44
-    let (local asset_out_min_quantity) = SafeUint256.mul(
-        asset_in_quantity,
+    let (local new_maker_wtb_asset_min_quantity) = SafeUint256.mul(
+        deposit_asset_quantity,
         Uint256(
             low = 44,
             high = 0
         )
     )
-    let (local asset_out_min_quantity) = SafeUint256.add(asset_out_min_quantity, position.asset_out_min_quantity)
+    let (local maker_wtb_asset_min_quantity) = SafeUint256.add(new_maker_wtb_asset_min_quantity, position.maker_wtb_asset_min_quantity)
 
     %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.token_a_address) %}
     IERC20.approve(
         contract_address = token_a_address,
         spender = wtb_dex_address,
-        amount = asset_in_quantity,
+        amount = deposit_asset_quantity,
     )
     %{ stop_prank_callable() %}
 
     %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.strategy_limit_order_address) %}
-    StrategyLimitOrderInterface.update_position_increase_asset_in(
+    StrategyLimitOrderInterface.update_position_increase_wts_asset(
         contract_address = strategy_limit_order_address,
         position_id = 0,
-        asset_quantity = asset_in_quantity,
+        deposit_asset_quantity = deposit_asset_quantity,
     )
     %{ stop_prank_callable() %}
 
@@ -480,23 +481,23 @@ func test_update_position_increase_asset_in_success{syscall_ptr : felt*, pederse
         position_id = 0
     )
 
-    let (local asset_in_quantity_old) = SafeUint256.add(asset_in_quantity_old, asset_in_quantity)
-    assert position.asset_in_quantity = asset_in_quantity_old
-    assert position.asset_out_min_quantity = asset_out_min_quantity
+    let (local maker_wts_asset_quantity) = SafeUint256.add(old_maker_wts_asset_quantity, deposit_asset_quantity)
+    assert position.maker_wts_asset_quantity = maker_wts_asset_quantity
+    assert position.maker_wtb_asset_min_quantity = maker_wtb_asset_min_quantity
 
     let (balance) = IERC20.balanceOf(
         contract_address = token_a_address,
         account = wtb_dex_address,
     )
     
-    let (local balance_old) = SafeUint256.add(balance_old, asset_in_quantity)
-    assert balance = balance_old
+    let (local sum_balance) = SafeUint256.add(old_balance, deposit_asset_quantity)
+    assert balance = sum_balance
     
     return ()
 end
 
 @external
-func test_update_position_increase_asset_in_not_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+func test_update_position_increase_wts_asset_not_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
 
     local caller_address
@@ -514,7 +515,7 @@ func test_update_position_increase_asset_in_not_owner{syscall_ptr : felt*, peder
 
     test_create_position_success()
 
-    let (local balance_old) = IERC20.balanceOf(
+    let (local old_balance) = IERC20.balanceOf(
         contract_address = token_a_address,
         account = wtb_dex_address,
     )
@@ -523,34 +524,44 @@ func test_update_position_increase_asset_in_not_owner{syscall_ptr : felt*, peder
         contract_address = strategy_limit_order_address,
         position_id = 0
     )
-    local asset_in_quantity_old: Uint256 = position.asset_in_quantity
 
-    let asset_in_quantity: Uint256 = Uint256(
-        low = 42,
+    local old_maker_wts_asset_quantity: Uint256 = position.maker_wts_asset_quantity
+
+    let deposit_asset_quantity: Uint256 = Uint256(
+        low = 18,
         high = 0
     )
+    # Price is 44
+    let (local new_maker_wtb_asset_min_quantity) = SafeUint256.mul(
+        deposit_asset_quantity,
+        Uint256(
+            low = 44,
+            high = 0
+        )
+    )
+    let (local maker_wtb_asset_min_quantity) = SafeUint256.add(new_maker_wtb_asset_min_quantity, position.maker_wtb_asset_min_quantity)
 
     %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.token_a_address) %}
     IERC20.transfer(
         contract_address = token_a_address,
         recipient = caller_address + 8,
-        amount = asset_in_quantity,
+        amount = deposit_asset_quantity,
     )
     %{ stop_prank_callable() %}
 
-    %{ stop_prank_callable = start_prank((context.caller_address + 8), target_contract_address=context.token_a_address) %}
+    %{ stop_prank_callable = start_prank(context.caller_address + 8, target_contract_address=context.token_a_address) %}
     IERC20.approve(
         contract_address = token_a_address,
         spender = wtb_dex_address,
-        amount = asset_in_quantity,
+        amount = deposit_asset_quantity,
     )
     %{ stop_prank_callable() %}
 
-    %{ stop_prank_callable = start_prank((context.caller_address + 8), target_contract_address=context.strategy_limit_order_address) %}
-    StrategyLimitOrderInterface.update_position_increase_asset_in(
+    %{ stop_prank_callable = start_prank(context.caller_address + 8, target_contract_address=context.strategy_limit_order_address) %}
+    StrategyLimitOrderInterface.update_position_increase_wts_asset(
         contract_address = strategy_limit_order_address,
         position_id = 0,
-        asset_quantity = asset_in_quantity,
+        deposit_asset_quantity = deposit_asset_quantity,
     )
     %{ stop_prank_callable() %}
 
@@ -559,22 +570,23 @@ func test_update_position_increase_asset_in_not_owner{syscall_ptr : felt*, peder
         position_id = 0
     )
 
-    let (local asset_in_quantity_old) = SafeUint256.add(asset_in_quantity_old, asset_in_quantity)
-    assert position.asset_in_quantity = asset_in_quantity_old
+    let (local maker_wts_asset_quantity) = SafeUint256.add(old_maker_wts_asset_quantity, deposit_asset_quantity)
+    assert position.maker_wts_asset_quantity = maker_wts_asset_quantity
+    assert position.maker_wtb_asset_min_quantity = maker_wtb_asset_min_quantity
 
     let (balance) = IERC20.balanceOf(
         contract_address = token_a_address,
         account = wtb_dex_address,
     )
     
-    let (local balance_old) = SafeUint256.add(balance_old, asset_in_quantity)
-    assert balance = balance_old
+    let (local sum_balance) = SafeUint256.add(old_balance, deposit_asset_quantity)
+    assert balance = sum_balance
     
     return ()
 end
 
 @external
-func test_update_position_decrease_asset_in_success{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+func test_update_position_decrease_wts_asset_success{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
 
     local caller_address
@@ -592,61 +604,62 @@ func test_update_position_decrease_asset_in_success{syscall_ptr : felt*, pederse
 
     test_create_position_success()
 
-    let (local balance_old) = IERC20.balanceOf(
+    let (local old_balance) = IERC20.balanceOf(
         contract_address = token_a_address,
         account = caller_address,
     )
 
     let (local position) = StrategyLimitOrderInterface.read_position(
         contract_address = strategy_limit_order_address,
-        position_id = 0
+        position_id = 1
     )
-    local asset_in_quantity_old: Uint256 = position.asset_in_quantity
 
-    let asset_in_quantity: Uint256 = Uint256(
-        low = 5,
+    local old_maker_wts_asset_quantity: Uint256 = position.maker_wts_asset_quantity
+
+    let withdraw_asset_quantity: Uint256 = Uint256(
+        low = 3,
         high = 0
     )
     # Price is 44
-    let (local asset_out_min_quantity) = SafeUint256.mul(
-        asset_in_quantity,
+    let (local new_maker_wtb_asset_min_quantity) = SafeUint256.mul(
+        withdraw_asset_quantity,
         Uint256(
             low = 44,
             high = 0
         )
     )
-    let (local asset_out_min_quantity) = SafeUint256.sub_le(position.asset_out_min_quantity, asset_out_min_quantity)
+    let (local maker_wtb_asset_min_quantity) = SafeUint256.sub_le(position.maker_wtb_asset_min_quantity, new_maker_wtb_asset_min_quantity)
 
     %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.strategy_limit_order_address) %}
-    StrategyLimitOrderInterface.update_position_decrease_asset_in(
+    StrategyLimitOrderInterface.update_position_decrease_wts_asset(
         contract_address = strategy_limit_order_address,
-        position_id = 0,
-        asset_quantity = asset_in_quantity,
+        position_id = 1,
+        withdraw_asset_quantity = withdraw_asset_quantity,
     )
     %{ stop_prank_callable() %}
 
     let (local position) = StrategyLimitOrderInterface.read_position(
         contract_address = strategy_limit_order_address,
-        position_id = 0
+        position_id = 1
     )
 
-    let (local asset_in_quantity_old) = SafeUint256.sub_le(asset_in_quantity_old, asset_in_quantity)
-    assert position.asset_in_quantity = asset_in_quantity_old
-    assert position.asset_out_min_quantity = asset_out_min_quantity
+    let (local maker_wts_asset_quantity) = SafeUint256.sub_le(old_maker_wts_asset_quantity, withdraw_asset_quantity)
+    assert position.maker_wts_asset_quantity = maker_wts_asset_quantity
+    assert position.maker_wtb_asset_min_quantity = maker_wtb_asset_min_quantity
 
     let (balance) = IERC20.balanceOf(
         contract_address = token_a_address,
         account = caller_address,
     )
     
-    let (local balance_old) = SafeUint256.add(balance_old, asset_in_quantity)
-    assert balance = balance_old
+    let (local sum_balance) = SafeUint256.add(old_balance, withdraw_asset_quantity)
+    assert balance = sum_balance
     
     return ()
 end
 
 @external
-func test_update_position_decrease_asset_in_not_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+func test_update_position_decrease_wts_asset_not_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
 
     local caller_address
@@ -664,17 +677,17 @@ func test_update_position_decrease_asset_in_not_owner{syscall_ptr : felt*, peder
 
     test_create_position_success()
 
-    let asset_in_quantity: Uint256 = Uint256(
-        low = 6,
+    let withdraw_asset_quantity: Uint256 = Uint256(
+        low = 3,
         high = 0
     )
 
-    %{ stop_prank_callable = start_prank((context.caller_address + 10), target_contract_address=context.strategy_limit_order_address) %}
+    %{ stop_prank_callable = start_prank(context.caller_address + 10, target_contract_address=context.strategy_limit_order_address) %}
     %{ expect_revert() %}
-    StrategyLimitOrderInterface.update_position_decrease_asset_in(
+    StrategyLimitOrderInterface.update_position_decrease_wts_asset(
         contract_address = strategy_limit_order_address,
-        position_id = 1,
-        asset_quantity = asset_in_quantity,
+        position_id = 0,
+        withdraw_asset_quantity = withdraw_asset_quantity,
     )
     %{ stop_prank_callable() %}
     
@@ -682,7 +695,7 @@ func test_update_position_decrease_asset_in_not_owner{syscall_ptr : felt*, peder
 end
 
 @external
-func test_update_position_asset_out_min_quantity_success{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+func test_update_position_wtb_asset_min_quantity_success{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
 
     local caller_address
@@ -700,16 +713,16 @@ func test_update_position_asset_out_min_quantity_success{syscall_ptr : felt*, pe
 
     test_create_position_success()
 
-    let asset_out_min_quantity: Uint256 = Uint256(
+    let maker_wtb_asset_min_quantity: Uint256 = Uint256(
         low = 999,
         high = 0
     )
 
     %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.strategy_limit_order_address) %}
-    StrategyLimitOrderInterface.update_position_asset_out_min_quantity(
+    StrategyLimitOrderInterface.update_position_wtb_asset_min_quantity(
         contract_address = strategy_limit_order_address,
         position_id = 1,
-        asset_out_min_quantity = asset_out_min_quantity,
+        maker_wtb_asset_min_quantity = maker_wtb_asset_min_quantity,
     )
     %{ stop_prank_callable() %}
 
@@ -718,13 +731,13 @@ func test_update_position_asset_out_min_quantity_success{syscall_ptr : felt*, pe
         position_id = 1
     )
 
-    assert position.asset_out_min_quantity = asset_out_min_quantity
+    assert position.maker_wtb_asset_min_quantity = maker_wtb_asset_min_quantity
     
     return ()
 end
 
 @external
-func test_update_position_asset_out_min_quantity_not_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+func test_update_position_wtb_asset_min_quantity_not_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
 
     local caller_address
@@ -742,17 +755,17 @@ func test_update_position_asset_out_min_quantity_not_owner{syscall_ptr : felt*, 
 
     test_create_position_success()
 
-    let asset_out_min_quantity: Uint256 = Uint256(
+    let maker_wtb_asset_min_quantity: Uint256 = Uint256(
         low = 42,
         high = 0
     )
 
     %{ stop_prank_callable = start_prank((context.caller_address + 10), target_contract_address=context.strategy_limit_order_address) %}
     %{ expect_revert() %}
-    StrategyLimitOrderInterface.update_position_asset_out_min_quantity(
+    StrategyLimitOrderInterface.update_position_wtb_asset_min_quantity(
         contract_address = strategy_limit_order_address,
         position_id = 1,
-        asset_out_min_quantity = asset_out_min_quantity,
+        maker_wtb_asset_min_quantity = maker_wtb_asset_min_quantity,
     )
     %{ stop_prank_callable() %}
     

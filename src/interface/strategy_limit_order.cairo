@@ -8,11 +8,11 @@ from src.type.limit_order_position import LimitOrderPositionStruct
 namespace StrategyLimitOrderInterface:
     func create_swap(
         position_id: felt,
-        asset_in_address: felt,
-        asset_in_quantity: Uint256,
-        asset_out_address: felt
+        taker_wts_asset_address: felt,
+        taker_wts_asset_quantity: Uint256,
+        taker_wtb_asset_address: felt
     ) -> (
-        quantity: Uint256
+        taker_wtb_asset_quantity: Uint256
     ):
     end
 
@@ -24,10 +24,10 @@ namespace StrategyLimitOrderInterface:
 
     func create_position(
         owner_address: felt,
-        asset_in_address: felt,
-        asset_in_quantity: Uint256,
-        asset_out_address: felt,
-        asset_out_min_quantity: Uint256,
+        maker_wts_asset_address: felt,
+        maker_wts_asset_quantity: Uint256,
+        maker_wtb_asset_address: felt,
+        maker_wtb_asset_min_quantity: Uint256,
         is_partial: felt
     ) -> (
         position_id: felt
@@ -48,23 +48,30 @@ namespace StrategyLimitOrderInterface:
     ):
     end
 
-    func update_position_increase_asset_in(
+    func update_position_increase_wts_asset(
         position_id: felt,
-        asset_quantity: Uint256,
+        deposit_asset_quantity: Uint256,
     ) -> (
     ):
     end
 
-    func update_position_decrease_asset_in(
+    func update_position_decrease_wts_asset(
         position_id: felt,
-        asset_quantity: Uint256,
+        withdraw_asset_quantity: Uint256,
     ) -> (
     ):
     end
 
-    func update_position_decrease_asset_out(
+    func update_position_decrease_wtb_asset(
         position_id: felt,
-        asset_quantity: Uint256,
+        withdraw_asset_quantity: Uint256,
+    ) -> (
+    ):
+    end
+
+    func update_position_wtb_asset_min_quantity(
+        position_id: felt,
+        maker_wtb_asset_min_quantity: Uint256,
     ) -> (
     ):
     end
@@ -72,13 +79,6 @@ namespace StrategyLimitOrderInterface:
     func update_position_is_partial(
         position_id: felt,
         is_partial: felt,
-    ) -> (
-    ):
-    end
-
-    func update_position_asset_out_min_quantity(
-        position_id: felt,
-        asset_out_min_quantity: Uint256,
     ) -> (
     ):
     end

@@ -6,11 +6,11 @@ from starkware.cairo.common.uint256 import Uint256
 namespace StrategyInterface:
     func create_swap(
         position_id: felt,
-        asset_in_address: felt,
-        asset_in_quantity: Uint256,
-        asset_out_address: felt
+        taker_wts_asset_address: felt,
+        taker_wts_asset_quantity: Uint256,
+        taker_wtb_asset_address: felt
     ) -> (
-        quantity: Uint256
+        taker_wtb_asset_quantity: Uint256
     ):
     end
 end

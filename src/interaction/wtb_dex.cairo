@@ -107,74 +107,74 @@ namespace WtbDexInteraction:
     func create_swap{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         strategy_address: felt,
         position_id: felt,
-        asset_in_address: felt,
-        asset_in_quantity: Uint256,
-        asset_out_address: felt,
-        asset_out_min_quantity: Uint256
+        taker_wts_asset_address: felt,
+        taker_wts_asset_quantity: Uint256,
+        taker_wtb_asset_address: felt,
+        taker_wtb_asset_min_quantity: Uint256
     ) -> ():
         alloc_locals
 
         # Compute quantity asset offered by this strategy
-        let (local asset_out_quantity_offered) = StrategyInterface.create_swap(
+        let (local taker_wtb_asset_quantity) = StrategyInterface.create_swap(
             contract_address = strategy_address,
             position_id = position_id,
-            asset_in_address = asset_in_address,
-            asset_in_quantity = asset_in_quantity,
-            asset_out_address = asset_out_address
+            taker_wts_asset_address = taker_wts_asset_address,
+            taker_wts_asset_quantity = taker_wts_asset_quantity,
+            taker_wtb_asset_address = taker_wtb_asset_address
         )
 
-        # Fetch strategy asset_in quantity
-        let (local asset_in_quantity_owned) = WtbDexStorage.read_strategy_asset_quantity(
+        # Fetch strategy maker want to sell quantity(taker wtb = maker wts)
+        let (local old_maker_wts_asset_quantity) = WtbDexStorage.read_strategy_asset_quantity(
             strategy_address = strategy_address,
-            asset_address = asset_in_address
+            asset_address = taker_wtb_asset_address
         )
 
-        # Fetch strategy asset_out quantity
-        let (local asset_out_quantity_owned) = WtbDexStorage.read_strategy_asset_quantity(
+        # Fetch strategy maker want to buy quantity(taker wts = maker wtb)
+        let (local old_maker_wtb_asset_quantity) = WtbDexStorage.read_strategy_asset_quantity(
             strategy_address = strategy_address,
-            asset_address = asset_out_address
+            asset_address = taker_wts_asset_address
         )
 
         # Check swap is valid
         let (is_valid) = WtbDexLogic.is_swap_valid(
-            asset_out_min_quantity = asset_out_min_quantity,
-            asset_out_quantity_offered = asset_out_quantity_offered,
-            asset_out_quantity_owned = asset_out_quantity_owned
+            taker_wtb_asset_min_quantity = taker_wtb_asset_min_quantity,
+            taker_wtb_asset_quantity = taker_wtb_asset_quantity,
+            maker_wts_asset_quantity = old_maker_wts_asset_quantity
         )  
         assert_not_zero(is_valid)
 
-        # Decrease strategy asset_out balance
-        let (local _quantity) = SafeUint256.sub_le(asset_out_quantity_owned, asset_out_quantity_offered)
+        # Decrease strategy maker want to sell asset
+        let (maker_wts_asset_quantity) = SafeUint256.sub_le(old_maker_wts_asset_quantity, taker_wtb_asset_quantity)
         WtbDexStorage.update_strategy_asset_quantity_map(
             strategy_address = strategy_address,
-            asset_address = asset_out_address,
-            quantity = _quantity
+            asset_address = taker_wtb_asset_address,
+            quantity = maker_wts_asset_quantity
         )
 
-        # Increase strategy asset_in balance
-        let (local _quantity) = SafeUint256.add(asset_in_quantity_owned, asset_in_quantity)
+        # Increase strategy maker want to buy asset
+        let (maker_wtb_asset_quantity) = SafeUint256.add(old_maker_wtb_asset_quantity, taker_wts_asset_quantity)
         WtbDexStorage.update_strategy_asset_quantity_map(
             strategy_address = strategy_address,
-            asset_address = asset_in_address,
-            quantity = _quantity
+            asset_address = taker_wts_asset_address,
+            quantity = maker_wtb_asset_quantity
         )
         
         let (local taker_address) = get_caller_address()
         let (local maker_address) = get_contract_address()
 
-        # Transfer asset_in from the caller(taker) to this contract(maker)
+        # Transfer taker wts asset from the caller(taker) to this contract(maker)
         IERC20.transferFrom(
-            contract_address = asset_in_address,
+            contract_address = taker_wts_asset_address,
             sender = taker_address,
             recipient = maker_address,
-            amount = asset_in_quantity
+            amount = taker_wts_asset_quantity
         )
 
-        # Transfer asset_out from this contract(maker) to the caller(taker)
+        # Transfer maker wts asset from this contract(maker) to the caller(taker)
         IERC20.transfer(
-            contract_address = asset_out_address,
+            contract_address = taker_wtb_asset_address,
             recipient = taker_address,
-            amount = asset_out_quantity_offered
+            amount = taker_wtb_asset_quantity
         )
 
         return ()
