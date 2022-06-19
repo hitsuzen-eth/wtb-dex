@@ -83,11 +83,11 @@ namespace StrategyLimitOrderLogic:
     ):
         alloc_locals
 
-        # Compute taker want to buy asset quantity for this swap => ( taker_wts * maker_wtb ) / maker_wts
+        # Compute taker want to buy asset quantity for this swap => ( taker_wts * maker_wts ) / maker_wtb
         let (local taker_wtb_asset_quantity) = mul_div(
             x = taker_wts_asset_quantity,
-            y = old_maker_wtb_asset_min_quantity,
-            z = old_maker_wts_asset_quantity,
+            y = old_maker_wts_asset_quantity,
+            z = old_maker_wtb_asset_min_quantity,
         )
 
         # Increase balance of maker want to buy asset and decrease min by same amount
