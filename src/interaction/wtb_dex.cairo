@@ -139,20 +139,26 @@ namespace WtbDexInteraction:
         let (is_valid) = WtbDexLogic.is_swap_valid(
             taker_wtb_asset_min_quantity = taker_wtb_asset_min_quantity,
             taker_wtb_asset_quantity = taker_wtb_asset_quantity,
-            maker_wts_asset_quantity = old_maker_wts_asset_quantity
         )  
         assert_not_zero(is_valid)
 
-        # Decrease strategy maker want to sell asset
-        let (maker_wts_asset_quantity) = SafeUint256.sub_le(old_maker_wts_asset_quantity, taker_wtb_asset_quantity)
+        # Swap balance
+        let (
+            local maker_wts_asset_quantity,
+            local maker_wtb_asset_quantity,
+        ) = WtbDexLogic.swap(
+            taker_wts_asset_quantity = taker_wts_asset_quantity,
+            taker_wtb_asset_quantity = taker_wtb_asset_quantity,
+            old_maker_wts_asset_quantity = old_maker_wts_asset_quantity,
+            old_maker_wtb_asset_quantity = old_maker_wtb_asset_quantity,
+        )
+
+        # Update balance
         WtbDexStorage.update_strategy_asset_quantity_map(
             strategy_address = strategy_address,
             asset_address = taker_wtb_asset_address,
             quantity = maker_wts_asset_quantity
         )
-
-        # Increase strategy maker want to buy asset
-        let (maker_wtb_asset_quantity) = SafeUint256.add(old_maker_wtb_asset_quantity, taker_wts_asset_quantity)
         WtbDexStorage.update_strategy_asset_quantity_map(
             strategy_address = strategy_address,
             asset_address = taker_wts_asset_address,
