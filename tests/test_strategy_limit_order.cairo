@@ -689,6 +689,217 @@ func test_update_position_decrease_wts_asset_not_owner{syscall_ptr : felt*, pede
 end
 
 @external
+func create_swap_success{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    alloc_locals
+
+    local caller_address
+    local wtb_dex_address
+    local token_a_address
+    local token_b_address
+    local strategy_limit_order_address
+    %{
+        ids.caller_address = context.caller_address
+        ids.wtb_dex_address = context.wtb_dex_address
+        ids.token_a_address = context.token_a_address
+        ids.token_b_address = context.token_b_address
+        ids.strategy_limit_order_address = context.strategy_limit_order_address
+    %}
+
+    let taker_wts_asset_quantity: Uint256 = Uint256(
+        low = 88,
+        high = 0
+    )
+
+    # Price is 44
+    let taker_wtb_asset_min_quantity: Uint256 = Uint256(
+        low = 2,
+        high = 0
+    )
+
+    %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.token_b_address) %}
+    IERC20.approve(
+        contract_address = token_b_address,
+        spender = wtb_dex_address,
+        amount = taker_wts_asset_quantity,
+    )
+    %{ stop_prank_callable() %}
+
+    %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.wtb_dex_address) %}
+    WtbDexInterface.create_swap(
+        contract_address = wtb_dex_address,
+        strategy_address = strategy_limit_order_address,
+        position_id = 0,
+        taker_wts_asset_address = token_b_address,
+        taker_wts_asset_quantity = taker_wts_asset_quantity,
+        taker_wtb_asset_address = token_a_address,
+        taker_wtb_asset_min_quantity = taker_wtb_asset_min_quantity,
+    )
+    %{ stop_prank_callable() %}
+
+    return ()
+end
+
+@external
+func test_update_position_decrease_wtb_asset_success{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    alloc_locals
+
+    local caller_address
+    local wtb_dex_address
+    local strategy_limit_order_address
+    local token_a_address
+    local token_b_address
+    %{
+        ids.caller_address = context.caller_address
+        ids.wtb_dex_address = context.wtb_dex_address
+        ids.strategy_limit_order_address = context.strategy_limit_order_address
+        ids.token_a_address = context.token_a_address
+        ids.token_b_address = context.token_b_address
+    %}
+
+    test_create_position_success()
+    create_swap_success()
+
+    let (local old_balance) = IERC20.balanceOf(
+        contract_address = token_b_address,
+        account = caller_address,
+    )
+
+    let (local old_position) = StrategyLimitOrderInterface.read_position(
+        contract_address = strategy_limit_order_address,
+        position_id = 0
+    )
+
+    let withdraw_asset_quantity: Uint256 = Uint256(
+        low = 88,
+        high = 0
+    )
+
+    %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.strategy_limit_order_address) %}
+    StrategyLimitOrderInterface.update_position_decrease_wtb_asset(
+        contract_address = strategy_limit_order_address,
+        position_id = 0,
+        withdraw_asset_quantity = withdraw_asset_quantity,
+    )
+    %{ stop_prank_callable() %}
+
+    let (local position) = StrategyLimitOrderInterface.read_position(
+        contract_address = strategy_limit_order_address,
+        position_id = 0
+    )
+
+    let zero: Uint256 = Uint256(
+        low = 0,
+        high = 0
+    )
+
+    assert position.maker_wtb_asset_quantity = zero
+
+    let (balance) = IERC20.balanceOf(
+        contract_address = token_b_address,
+        account = caller_address,
+    )
+    
+    let (local sum_balance) = SafeUint256.add(old_balance, withdraw_asset_quantity)
+    assert balance = sum_balance
+    
+    return ()
+end
+
+@external
+func test_update_position_decrease_wtb_asset_not_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    alloc_locals
+
+    local caller_address
+    local wtb_dex_address
+    local strategy_limit_order_address
+    local token_a_address
+    local token_b_address
+    %{
+        ids.caller_address = context.caller_address
+        ids.wtb_dex_address = context.wtb_dex_address
+        ids.strategy_limit_order_address = context.strategy_limit_order_address
+        ids.token_a_address = context.token_a_address
+        ids.token_b_address = context.token_b_address
+    %}
+
+    test_create_position_success()
+    create_swap_success()
+
+    let (local old_balance) = IERC20.balanceOf(
+        contract_address = token_b_address,
+        account = caller_address,
+    )
+
+    let (local old_position) = StrategyLimitOrderInterface.read_position(
+        contract_address = strategy_limit_order_address,
+        position_id = 0
+    )
+
+    let withdraw_asset_quantity: Uint256 = Uint256(
+        low = 2,
+        high = 0
+    )
+
+    %{ stop_prank_callable = start_prank(context.caller_address + 87, target_contract_address=context.strategy_limit_order_address) %}
+    %{ expect_revert() %}
+    StrategyLimitOrderInterface.update_position_decrease_wtb_asset(
+        contract_address = strategy_limit_order_address,
+        position_id = 0,
+        withdraw_asset_quantity = withdraw_asset_quantity,
+    )
+    %{ stop_prank_callable() %}
+    
+    return ()
+end
+
+@external
+func test_update_position_decrease_wtb_asset_too_much{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    alloc_locals
+
+    local caller_address
+    local wtb_dex_address
+    local strategy_limit_order_address
+    local token_a_address
+    local token_b_address
+    %{
+        ids.caller_address = context.caller_address
+        ids.wtb_dex_address = context.wtb_dex_address
+        ids.strategy_limit_order_address = context.strategy_limit_order_address
+        ids.token_a_address = context.token_a_address
+        ids.token_b_address = context.token_b_address
+    %}
+
+    test_create_position_success()
+    create_swap_success()
+
+    let (local old_balance) = IERC20.balanceOf(
+        contract_address = token_b_address,
+        account = caller_address,
+    )
+
+    let (local old_position) = StrategyLimitOrderInterface.read_position(
+        contract_address = strategy_limit_order_address,
+        position_id = 0
+    )
+
+    let withdraw_asset_quantity: Uint256 = Uint256(
+        low = 89,
+        high = 0
+    )
+
+    %{ stop_prank_callable = start_prank(context.caller_address, target_contract_address=context.strategy_limit_order_address) %}
+    %{ expect_revert() %}
+    StrategyLimitOrderInterface.update_position_decrease_wtb_asset(
+        contract_address = strategy_limit_order_address,
+        position_id = 0,
+        withdraw_asset_quantity = withdraw_asset_quantity,
+    )
+    %{ stop_prank_callable() %}
+    
+    return ()
+end
+
+@external
 func test_update_position_wtb_asset_min_quantity_success{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
 
