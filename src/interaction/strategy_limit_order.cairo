@@ -98,7 +98,7 @@ namespace StrategyLimitOrderInteraction:
         )
     end
 
-    @external
+    @view
     func read_wtb_dex_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     ) -> (wtb_dex_address: felt):
         return StrategyLimitOrderStorage.read_wtb_dex_address()
@@ -151,7 +151,7 @@ namespace StrategyLimitOrderInteraction:
         )
     end
 
-    @external
+    @view
     func read_position{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         position_id: felt,
     ) -> (position: LimitOrderPositionStruct):

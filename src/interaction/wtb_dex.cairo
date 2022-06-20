@@ -20,7 +20,7 @@ namespace WtbDexInteraction:
 
 
 
-    @external
+    @view
     func read_strategy_asset_balance{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         strategy_address: felt,
         asset_address: felt

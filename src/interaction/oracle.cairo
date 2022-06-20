@@ -19,7 +19,7 @@ namespace OracleInteraction:
         return ()
     end
 
-    @external
+    @view
     func read_asset_price{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         asset_address: felt,
     ) -> (asset_price: AssetPriceStruct):
@@ -50,7 +50,7 @@ namespace OracleInteraction:
         return ()
     end
 
-    @external
+    @view
     func read_owner_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     ) -> (owner_address: felt):
 
